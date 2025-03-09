@@ -4,19 +4,16 @@
     <title>Welcome to Somnolent Labs on Somnolent Labs</title>
     <link>https://somnolentlabs.com/</link>
     <description>Recent content in Welcome to Somnolent Labs on Somnolent Labs</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 08 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://somnolentlabs.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 08 Mar 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://somnolentlabs.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>My First Project</title>
       <link>https://somnolentlabs.com/work/my-first-project/</link>
       <pubDate>Sat, 08 Mar 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://somnolentlabs.com/work/my-first-project/</guid>
       <description>&lt;p&gt;This is a sample project description. More work coming soon! Looking forward to sharing with the world.&lt;/p&gt;</description>
-      <content>&lt;p&gt;This is a sample project description. More work coming soon! Looking forward to sharing with the world.&lt;/p&gt;
-</content>
     </item>
-    
   </channel>
 </rss>
