@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Success!</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
+        .code-box { background-color: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 1.2em; font-weight: bold; word-wrap: break-word; }
+        .loading { font-style: italic; color: #555; }
+        .error { color: red; font-weight: bold; }
+        .instructions { font-size: 0.9em; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thank You for Subscribing!</h1>
+        <p>Your premium access is being activated.</p>
+
+        <div id="restore-code-section">
+            <h2>Your Subscription Restore Code</h2>
+            <p class="instructions">Please save this code somewhere safe. You can use it to activate premium access if you install the extension on a different computer or browser.</p>
+            <div id="code-display" class="loading">Loading your code...</div>
+            <p id="error-display" class="error" style="display: none;"></p>
+        </div>
+    </div>
+
+    <script>
+        // Get the Checkout Session ID from the URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        const codeDisplay = document.getElementById('code-display');
+        const errorDisplay = document.getElementById('error-display');
+
+        // Replace with your actual Stripe worker URL
+        const STRIPE_WORKER_URL = 'https://your-stripe-worker-url.workers.dev'; // <-- IMPORTANT: SET YOUR WORKER URL HERE
+
+        async function fetchRestoreCode() {
+            if (!sessionId) {
+                codeDisplay.textContent = 'Error: Checkout session ID missing.';
+                codeDisplay.classList.remove('loading');
+                codeDisplay.classList.add('error');
+                return;
+            }
+
+            try {
+                // Call the new worker endpoint
+                const response = await fetch(`${STRIPE_WORKER_URL}/get-restore-code?session_id=${sessionId}`, {
+                    method: 'GET', // Use GET for retrieving data based on URL param
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+                    throw new Error(errorData.error || `Failed to fetch code (Status: ${response.status})`);
+                }
+
+                const data = await response.json(); // Expect { restoreCode: "..." }
+
+                if (data.restoreCode) {
+                    codeDisplay.textContent = data.restoreCode;
+                    codeDisplay.classList.remove('loading');
+                } else {
+                    throw new Error('Restore code not found in response.');
+                }
+
+            } catch (error) {
+                console.error('Error fetching restore code:', error);
+                codeDisplay.textContent = ''; // Clear loading message
+                codeDisplay.style.display = 'none'; // Hide the code box area
+                errorDisplay.textContent = `Error retrieving restore code: ${error.message}`;
+                errorDisplay.style.display = 'block';
+            }
+        }
+
+        // Fetch the code when the page loads
+        window.addEventListener('DOMContentLoaded', fetchRestoreCode);
+    </script>
+</body>
+</html>
