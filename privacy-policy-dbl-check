@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Dbl Check </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Add simple body font */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter as a default Tailwind font */
+        }
+        /* Basic link styling */
+        a {
+            color: #007aff; /* Example blue color */
+            text-decoration: underline;
+        }
+        a:hover {
+            color: #005ecb;
+        }
+    </style>
+     <link rel="preconnect" href="https://rsms.me/">
+     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto max-w-3xl p-6 md:p-10 bg-white rounded-lg shadow-md my-10">
+
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Privacy Policy for Dbl Check</h1>
+
+        <p class="text-sm text-gray-600 mb-6">Effective Date: [Insert Date - e.g., April 12, 2025]</p>
+
+        <p class="mb-4 text-gray-700">This Privacy Policy describes how Dbl Check ("we," "us," or "our") collects, uses, and shares information when you use our Chrome Extension (the "Extension").</p>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Information We Collect</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li>
+                    <strong>Content for Analysis:</strong> When you click the "Validate Content" button, the Extension captures the URL of the currently active web page and a visible screenshot of that page. This information is necessary to perform the content validation analysis.
+                </li>
+                <li>
+                    <strong>User Identifier (userId):</strong> We generate and store a unique, anonymous identifier (`userId`) locally within your browser's extension storage (`chrome.storage.local`). This ID is used initially to link your browser instance to a potential subscription checkout process.
+                </li>
+                <li>
+                    <strong>Subscription Information:</strong> If you choose to upgrade to a premium subscription, we use Stripe, a third-party payment processor, to handle the transaction. We store your subscription status ('free' or 'premium'), the Stripe Customer ID, and the Stripe Subscription ID locally within your browser's extension storage (`chrome.storage.local`) after a successful purchase or restoration. Your payment details (like credit card numbers) are processed directly by Stripe and are not collected or stored by us.
+                </li>
+                 <li>
+                    <strong>Restore Code:</strong> If you use the "Restore Subscription" feature, you will be prompted to enter your unique Restore Code. This code is sent directly to our backend service (hosted on Cloudflare Workers) to verify your subscription status with Stripe. We do not store the Restore Code locally in your browser's extension storage.
+                </li>
+                 <li>
+                    <strong>Usage Data (Free Tier):</strong> For users on the free tier, we store the number of remaining free validations and the date of the last usage locally within your browser's extension storage (`chrome.storage.local`) to manage daily limits.
+                </li>
+            </ul>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">How We Use Information</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li>
+                    <strong>To Provide the Service:</strong> The collected URL and screenshot are sent to Google's Gemini service via our secure backend (hosted on Cloudflare Workers) to analyze the content and provide you with a validity score and explanation.
+                </li>
+                <li>
+                    <strong>To Manage Subscriptions:</strong> Your `userId` is initially sent to our backend service to initiate the Stripe checkout process. Your Stripe Customer ID and Subscription ID are used to verify your premium status with Stripe via our backend service and to allow you to manage your subscription through the Stripe Customer Portal. The Restore Code is used solely to verify and reactivate a subscription via our backend service and Stripe.
+                </li>
+                 <li>
+                    <strong>To Enforce Usage Limits:</strong> Local usage data is used to track and enforce the daily validation limits for free tier users.
+                </li>
+                <li>
+                    <strong>To Improve the Extension:</strong> We may use aggregated, anonymized information about extension usage (e.g., frequency of use, common types of errors encountered, *without* analyzing the specific content validated) to understand user needs and improve the Extension's functionality and performance.
+                </li>
+            </ul>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Data Sharing and Third Parties</h2>
+            <p class="mb-4 text-gray-700">We do not sell your personal information. We share information only in the following circumstances:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li>
+                    <strong>Google Gemini:</strong> We send the URL and screenshot of the page you are validating to Google Gemini for analysis. Google's use of this data is governed by their own privacy policies and terms of service. We do not send your `userId` or Stripe information to Google Gemini.
+                </li>
+                <li>
+                    <strong>Stripe:</strong> We use Stripe for payment processing and subscription management. When you upgrade or manage your subscription, you interact directly with Stripe. We send your `userId` (for checkout initiation), Restore Code (for verification), Stripe Customer ID (for portal access and status checks), and Stripe Subscription ID (for status checks) to Stripe via our backend service. Stripe's use of your information is governed by the <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>.
+                </li>
+                 <li>
+                    <strong>Cloudflare Workers:</strong> Our backend logic that communicates with Google Gemini and Stripe is hosted on Cloudflare Workers. Cloudflare acts as a service provider processing data on our behalf according to our instructions.
+                </li>
+                <li>
+                    <strong>Legal Requirements:</strong> We may disclose information if required to do so by law or in the good faith belief that such action is necessary to comply with a legal obligation, protect and defend our rights or property, prevent fraud, or protect the personal safety of users or the public.
+                </li>
+            </ul>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Data Security</h2>
+            <p class="text-gray-700">We implement reasonable security measures to protect the information we handle. Data stored locally (`userId`, subscription status, Stripe IDs, usage data) relies on the security mechanisms provided by the Chrome browser and its extension storage. Communication with our backend service and third-party services (Google Gemini, Stripe) occurs over HTTPS.</p>
+             <p class="mt-2 text-gray-700">However, no electronic transmission or storage is completely secure. While we strive to use commercially acceptable means to protect your information, we cannot guarantee its absolute security.</p>
+        </section>
+
+         <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Data Retention</h2>
+            <p class="text-gray-700">Locally stored data (`userId`, subscription status, Stripe IDs, usage data) persists in your browser's extension storage until you clear the extension's storage or uninstall the Extension.</p>
+             <p class="mt-2 text-gray-700">We do not retain the screenshots or URLs you submit for validation on our backend servers after the analysis request to Google Gemini is completed.</p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Your Choices</h2>
+             <p class="text-gray-700">You can stop all collection of information by the Extension by uninstalling it. You can clear the data stored by the Extension via your browser's extension management settings.</p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Children's Privacy</h2>
+            <p class="text-gray-700">The Extension is not intended for use by children under the age of 13 (or the relevant age in your jurisdiction). We do not knowingly collect personal information from children.</p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Changes to This Privacy Policy</h2>
+            <p class="text-gray-700">We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy within the Extension or on an associated website. You are advised to review this Privacy Policy periodically for any changes. Changes are effective when they are posted.</p>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold mb-3 text-gray-800">Contact Us</h2>
+            <p class="text-gray-700">If you have any questions about this Privacy Policy, please contact us at: <a href="mailto:[Your Email Address]">somnolentlabs@gmail.com</a></p>
+        </section>
+
+    </div>
+
+</body>
+</html>
