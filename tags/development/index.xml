@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Development on Somnolent Labs</title>
+    <link>https://somnolentlabs.com/tags/development/</link>
+    <description>Recent content in Development on Somnolent Labs</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 02 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://somnolentlabs.com/tags/development/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Dbl Check - Relaunch</title>
+      <link>https://somnolentlabs.com/posts/dblcheckrelaunch/</link>
+      <pubDate>Mon, 02 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://somnolentlabs.com/posts/dblcheckrelaunch/</guid>
+      <description>&lt;h2 id=&#34;dbl-check-relaunch&#34;&gt;Dbl Check Relaunch&lt;/h2&gt;&#xA;&lt;p&gt;Dbl Check is out (again)! It&amp;rsquo;s free on the Chrome Webstore with three &amp;ldquo;checks&amp;rdquo; a day for the time being. I got mixed up on how the Chrome Webstore works so I had to take it down, put it up, take it down again, etc.&lt;/p&gt;&#xA;&lt;p&gt;I&amp;rsquo;ll work on some more features and increase the limit of three but I&amp;rsquo;m calling this the official launch.&lt;/p&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://chromewebstore.google.com/detail/dbl-check/labkdeadaiekmeajaiknljnjpockolfj&#34;&gt;https://chromewebstore.google.com/detail/dbl-check/labkdeadaiekmeajaiknljnjpockolfj&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
