@@ -361,6 +361,72 @@
     }
     .tgt-mk { width:12px; height:12px; background:transparent; border:2px solid var(--a); animation:pulse 2s ease-in-out infinite; }
     .uap-mk { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:13px solid var(--a); filter:drop-shadow(0 0 6px var(--a)); }
+
+    /* ============================================================
+       MOBILE RESPONSIVE  (≤768px)
+       Desktop layout is unchanged — all overrides are here.
+       ============================================================ */
+    @media (max-width: 768px) {
+
+      /* ── Global: unlock scrolling ── */
+      html, body { height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
+
+      /* ── Boot ── */
+      #boot { padding:0 6%; font-size:0.85em; }
+      .bl   { white-space:normal; }
+
+      /* ── Shell ── */
+      #shell { height:auto; min-height:100vh; }
+
+      /* ── Header: brand full-width, tabs scroll horizontally ── */
+      .shell-hdr   { height:auto; flex-wrap:wrap; }
+      .shell-brand {
+        width:100%; border-right:none;
+        border-bottom:2px solid var(--a);
+        padding:8px 14px; font-size:1.0em;
+        letter-spacing:0.2em;
+      }
+      .shell-tabs {
+        flex:1; border-right:none;
+        overflow-x:auto; scrollbar-width:none;
+        -webkit-overflow-scrolling:touch;
+      }
+      .shell-tabs::-webkit-scrollbar { display:none; }
+      .shell-right { display:none; }
+
+      /* ── Module area: natural height, not flex-stretched ── */
+      .module-area { flex:none; height:auto; }
+      .module      { flex:none; height:auto; }
+
+      /* ── Shared feed panels ── */
+      .feed-panel { flex:none; min-height:160px; }
+      .feed-body  { overflow-y:auto; max-height:200px; }
+
+      /* ── ATMOS: single column, constrain maps ── */
+      #module-weather .mw-grid     { grid-template-columns:1fr; }
+      #module-weather .mw-map-wrap { flex:none; height:180px; }
+
+      /* ── SITREP: feed col stacks above map ── */
+      #module-situation .ms-row  { flex-direction:column; }
+      #module-situation .ms-col  { flex:none; }
+      #module-situation .ms-map  { flex:none; height:280px; }
+      #module-situation .ms-mhd  { flex-wrap:wrap; gap:4px; }
+      #sit-map { height:100%; }
+
+      /* ── GAMING: single column ── */
+      #module-gaming .mg-cols { grid-template-columns:1fr; }
+
+      /* ── CANIAC: stack all rows vertically ── */
+      #module-caniac .mc-rows        { height:auto; }
+      #module-caniac .mc-row         { flex-direction:column; height:auto; }
+      #module-caniac .mc-row-top     { flex:none; }
+      #module-caniac .mc-row-bot     { flex:none; }
+      #module-caniac .mc-chart-panel { flex:none; }
+      #module-caniac .mc-spec-panel  { flex:none; overflow:visible; }
+      #module-caniac .mc-panel-body  { overflow:visible; }
+      #module-caniac .mc-chart-wrap  { flex:none; height:180px; }
+
+    }
   </style>
 </head>
 <body>
@@ -510,8 +576,8 @@
 
     <!-- ════════════════════════════════════════════════
          MODULE: SITREP
-         Feeds: FEEDS.uap + FEEDS.iran in JS registry
-         Map markers: IRAN_LOCS / UAP_LOCS arrays
+         Feeds: FEEDS.uap in JS registry
+         Map markers: UAP_LOCS array
          To add a feed topic: see FEEDS{} in JS
          ════════════════════════════════════════════════ -->
     <div class="module" id="module-situation" style="display:none">
@@ -528,16 +594,6 @@
               <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
             </div>
           </div>
-          <!-- IRAN -->
-          <div class="feed-panel">
-            <div class="feed-hd">
-              <span>// IRAN SITUATION //</span>
-              <span class="feed-tag" id="iran-tag">ACQUIRING...</span>
-            </div>
-            <div class="feed-body" id="iran-body">
-              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
-            </div>
-          </div>
         </div>
 
         <!-- MAP -->
@@ -545,8 +601,7 @@
           <div class="ms-mhd">
             <span>// TACTICAL GEOSPATIAL DISPLAY //</span>
             <div class="ms-mbtns">
-              <button class="ms-mbtn active" id="mbtn-iran"   onclick="setMapView('iran')"  >IRAN SECTOR</button>
-              <button class="ms-mbtn"        id="mbtn-uap"    onclick="setMapView('uap')"   >UAP SECTOR</button>
+              <button class="ms-mbtn active" id="mbtn-uap"    onclick="setMapView('uap')"   >UAP SECTOR</button>
               <button class="ms-mbtn"        id="mbtn-global" onclick="setMapView('global')">GLOBAL</button>
             </div>
           </div>
@@ -924,10 +979,6 @@ const FEEDS = {
     sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
     bodyId:'uap-body', tagId:'uap-tag',
   },
-  iran: {
-    sources:[{url:'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
-    bodyId:'iran-body', tagId:'iran-tag',
-  },
   /* GAMING */
   gleaks: {
     sources:[{url:'https://news.google.com/rss/search?q=game+leak+OR+"game+leaked"+OR+gaming+insider+OR+game+datamine&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
@@ -1036,15 +1087,7 @@ function initWeatherMaps() {
 /* ════════════════════════════════════════════════════════
    SITREP MAP
    ════════════════════════════════════════════════════════ */
-const MAP_VIEWS={iran:{center:[32.4,53.7],zoom:5},uap:{center:[38.5,-100],zoom:4},global:{center:[20,10],zoom:2}};
-const IRAN_LOCS=[
-  {ll:[35.6892,51.3890],label:'TEHRAN',         sub:'CAPITAL DISTRICT'},
-  {ll:[26.5667,56.2500],label:'STRAIT OF HORMUZ',sub:'STRATEGIC CHOKEPOINT'},
-  {ll:[32.6539,51.6660],label:'ISFAHAN',         sub:'NUCLEAR FACILITIES REGION'},
-  {ll:[36.2866,49.9993],label:'QOM',             sub:'FORDOW SITE REGION'},
-  {ll:[35.3219,46.9861],label:'KERMANSHAH',      sub:'WESTERN IRAN'},
-  {ll:[29.6100,60.8600],label:'ZAHEDAN',         sub:'SOUTHEAST PROVINCE'},
-];
+const MAP_VIEWS={uap:{center:[38.5,-100],zoom:4},global:{center:[20,10],zoom:2}};
 const UAP_LOCS=[
   {ll:[37.2350,-115.8111],label:'AREA 51',         sub:'GROOM LAKE, NEVADA'},
   {ll:[40.4567,-109.8933],label:'SKINWALKER RANCH',sub:'UINTAH BASIN, UTAH'},
@@ -1072,12 +1115,10 @@ function setMapView(key){
   document.getElementById('mbtn-'+key)?.classList.add('active');
 }
 function initSituMap(){
-  window.situMap=L.map('sit-map',{zoomControl:false,attributionControl:false}).setView(MAP_VIEWS.iran.center,MAP_VIEWS.iran.zoom);
+  window.situMap=L.map('sit-map',{zoomControl:false,attributionControl:false}).setView(MAP_VIEWS.uap.center,MAP_VIEWS.uap.zoom);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(window.situMap);
   L.control.zoom({position:'bottomright'}).addTo(window.situMap);
-  IRAN_LOCS.forEach(l=>L.marker(l.ll,{icon:makeIcon('iran')}).bindPopup(popupHtml(l)).addTo(window.situMap));
   UAP_LOCS.forEach( l=>L.marker(l.ll,{icon:makeIcon('uap') }).bindPopup(popupHtml(l)).addTo(window.situMap));
-  L.circle([32.4,53.7],{radius:700000,color:'#FFB000',fillColor:'#FFB000',fillOpacity:0.03,weight:1,dashArray:'6,6'}).addTo(window.situMap);
   setTimeout(()=>window.situMap.invalidateSize(),100);
 }
 
