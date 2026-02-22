@@ -109,6 +109,19 @@
     .shell-utc { color:var(--adim); white-space:nowrap; }
     .shell-utc em { font-style:normal; color:var(--a); }
 
+    /* ── MOBILE NAV (hidden on desktop) ── */
+    .mob-ham  { display:none; }
+    .mob-menu { display:none; flex-direction:column; flex-shrink:0;
+                border:3px solid var(--a); border-top:none; background:var(--bg); }
+    .mob-item {
+      padding:11px 16px; font-size:1.25em; letter-spacing:0.22em;
+      border-bottom:1px solid var(--adim); cursor:pointer; color:var(--amid);
+      user-select:none;
+    }
+    .mob-item:last-child { border-bottom:none; }
+    .mob-item:hover  { color:var(--a); }
+    .mob-item.active { color:var(--a); background:rgba(255,176,0,0.06); }
+
     /* ── MODULE AREA ── */
     .module-area { flex:1; min-height:0; display:flex; flex-direction:column; }
     .module      { flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; }
@@ -378,21 +391,22 @@
       /* ── Shell ── */
       #shell { height:auto; min-height:100vh; }
 
-      /* ── Header: brand full-width, tabs scroll horizontally ── */
-      .shell-hdr   { height:auto; flex-wrap:wrap; }
+      /* ── Header: brand full-width + hamburger, tabs hidden ── */
+      .shell-hdr   { height:auto; }
       .shell-brand {
         width:100%; border-right:none;
-        border-bottom:2px solid var(--a);
-        padding:8px 14px; font-size:1.0em;
-        letter-spacing:0.2em;
+        padding:8px 14px; font-size:1.0em; letter-spacing:0.2em;
+        justify-content:space-between;
       }
-      .shell-tabs {
-        flex:1; border-right:none;
-        overflow-x:auto; scrollbar-width:none;
-        -webkit-overflow-scrolling:touch;
-      }
-      .shell-tabs::-webkit-scrollbar { display:none; }
+      .shell-tabs  { display:none; }
       .shell-right { display:none; }
+      .mob-ham {
+        display:flex; align-items:center;
+        font-size:1.6em; letter-spacing:0; cursor:pointer;
+        color:var(--a); text-shadow:0 0 8px var(--a);
+        user-select:none; padding-left:12px;
+      }
+      .mob-menu.open { display:flex; }
 
       /* ── Module area: natural height, not flex-stretched ── */
       .module-area { flex:none; height:auto; }
@@ -458,7 +472,7 @@
 
   <!-- ── HEADER ── -->
   <div class="shell-hdr">
-    <div class="shell-brand">SOMNOLENT&nbsp;&nbsp;v1.0</div>
+    <div class="shell-brand">SOMNOLENT&nbsp;&nbsp;v1.0<span class="mob-ham" id="mob-ham" onclick="toggleMobMenu()">≡</span></div>
 
     <div class="shell-tabs">
       <!-- ─ registered module tabs ─ -->
@@ -474,6 +488,14 @@
       <span id="mod-status"></span>
       <span class="shell-utc">UTC&nbsp;<em id="utc">--:--:--</em>&nbsp;<span class="dot"></span>ONLINE</span>
     </div>
+  </div>
+
+  <!-- ── MOBILE NAV MENU ── -->
+  <div class="mob-menu" id="mob-menu">
+    <div class="mob-item active" data-mod="weather"   onclick="switchModule('weather');  toggleMobMenu()">■ ATMOS</div>
+    <div class="mob-item"        data-mod="situation" onclick="switchModule('situation');toggleMobMenu()">○ SITREP</div>
+    <div class="mob-item"        data-mod="gaming"    onclick="switchModule('gaming');   toggleMobMenu()">○ GAMING</div>
+    <div class="mob-item"        data-mod="caniac"    onclick="switchModule('caniac');   toggleMobMenu()">○ CANIAC</div>
   </div>
 
   <!-- ── MODULE AREA ── -->
@@ -813,6 +835,10 @@ const MODULES = {
 
 function setModStatus(text) { document.getElementById('mod-status').textContent = text; }
 
+function toggleMobMenu() {
+  document.getElementById('mob-menu').classList.toggle('open');
+}
+
 function switchModule(id) {
   if (!MODULES[id] || id === activeModule) return;
   stopCaniacWave();
@@ -829,6 +855,12 @@ function switchModule(id) {
     const tEl = document.getElementById('tab-' + id);
     tEl.classList.add('active');
     tEl.textContent = '■ ' + MODULES[id].label;
+    document.querySelectorAll('.mob-item').forEach(m => {
+      const isActive = m.dataset.mod === id;
+      m.classList.toggle('active', isActive);
+      m.textContent = (isActive ? '■ ' : '○ ') + MODULES[m.dataset.mod].label;
+    });
+    document.getElementById('mob-menu').classList.remove('open');
     activeModule = id;
     MODULES[id].onShow?.();
     area.style.opacity = '1';
