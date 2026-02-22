@@ -651,10 +651,10 @@
          MODULE: CANIAC
          Raising Cane's intel: price history chart,
          geopolitical pressure waveform, combo spec sheet,
-         and Iran/UAP news feeds.
+         and UAP news feed.
          Chart: drawCaniacChart() on canvas #caniac-chart
          Wave:  drawCaniacWave() animation on #caniac-wave
-         Feeds: FEEDS.caniac_iran + FEEDS.caniac_uap
+         Feeds: FEEDS.caniac_uap
          ════════════════════════════════════════════════ -->
     <div class="module" id="module-caniac" style="display:none">
       <div class="mc-rows">
@@ -673,7 +673,7 @@
                 <canvas id="caniac-chart"></canvas>
               </div>
               <div class="mc-wave-wrap">
-                <div class="mc-wave-hd">// GEOPOLITICAL PRESSURE WAVEFORM  ·  IRAN + UAP COMPOSITE INDEX //</div>
+                <div class="mc-wave-hd">// GEOPOLITICAL PRESSURE WAVEFORM  ·  UAP COMPOSITE INDEX //</div>
                 <div class="mc-wave-body">
                   <canvas id="caniac-wave"></canvas>
                 </div>
@@ -710,11 +710,6 @@
               <div class="mc-row-spec"><span class="mc-sk">HEAT SIG.</span><span class="mc-sv">BLACK PEPPER</span></div>
               <div class="mc-sec-lbl">// THREAT VECTOR IMPACT //</div>
               <div class="mc-bar-row">
-                <span class="mc-bar-lbl">IRAN (OIL)</span>
-                <div class="mc-bar-track"><div class="mc-bar-fill" style="width:72%"></div></div>
-                <span class="mc-bar-val">72%</span>
-              </div>
-              <div class="mc-bar-row">
                 <span class="mc-bar-lbl">UAP DISTRACT</span>
                 <div class="mc-bar-track"><div class="mc-bar-fill" style="width:38%"></div></div>
                 <span class="mc-bar-val">38%</span>
@@ -736,16 +731,6 @@
 
         <!-- ── BOTTOM ROW: threat feeds ── -->
         <div class="mc-row mc-row-bot">
-
-          <div class="feed-panel">
-            <div class="feed-hd">
-              <span>// IRAN  ·  SUPPLY CHAIN THREAT VECTOR //</span>
-              <span class="feed-tag" id="caniac-iran-tag">ACQUIRING...</span>
-            </div>
-            <div class="feed-body" id="caniac-iran-body">
-              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
-            </div>
-          </div>
 
           <div class="feed-panel">
             <div class="feed-hd">
@@ -989,10 +974,6 @@ const FEEDS = {
     bodyId:'greveal-body', tagId:'greveal-tag',
   },
   /* CANIAC */
-  caniac_iran: {
-    sources:[{url:'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
-    bodyId:'caniac-iran-body', tagId:'caniac-iran-tag',
-  },
   caniac_uap: {
     sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
     bodyId:'caniac-uap-body', tagId:'caniac-uap-tag',
@@ -1068,7 +1049,7 @@ function initWeatherMaps() {
     .setView([29.6516, -82.3248], 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18})
     .addTo(window.wxMapGvl);
-  L.marker([29.6516, -82.3248], {icon: makeIcon('iran')})
+  L.marker([29.6516, -82.3248], {icon: makeIcon('tgt')})
     .bindPopup(popupHtml({label:'GAINESVILLE', sub:'FLORIDA, USA', ll:[29.6516, -82.3248]}))
     .addTo(window.wxMapGvl);
 
@@ -1077,7 +1058,7 @@ function initWeatherMaps() {
     .setView([42.6629, 21.1655], 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18})
     .addTo(window.wxMapXk);
-  L.marker([42.6629, 21.1655], {icon: makeIcon('iran')})
+  L.marker([42.6629, 21.1655], {icon: makeIcon('tgt')})
     .bindPopup(popupHtml({label:'PRISTINA', sub:'KOSOVO, XK', ll:[42.6629, 21.1655]}))
     .addTo(window.wxMapXk);
 
@@ -1146,7 +1127,7 @@ const CANIAC_LBL_YRS = new Set([2003,2006,2010,2014,2017,2019,2021,2023,2025]);
 /* Key event annotations */
 const CANIAC_EVENTS = [
   {year:2020, label:'COVID'},
-  {year:2022, label:'IRAN / INFLATION'},
+  {year:2022, label:'INFLATION'},
   {year:2025, label:'UAP?'},
 ];
 

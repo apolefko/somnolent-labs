@@ -199,6 +199,25 @@
     .leaflet-control-attribution { display: none; }
     .leaflet-container { background: #050505; }
 
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      html, body   { height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
+      #boot        { padding:0 6%; font-size:0.85em; }
+      .bl          { white-space:normal; }
+      #app         { height:auto; min-height:100vh; }
+      .hdr         { flex-wrap:wrap; gap:4px; }
+      .hdr-title   { font-size:1.2em; letter-spacing:0.2em; }
+      .hdr-right   { display:none; }
+      .main-row    { flex-direction:column; }
+      .news-col    { flex:none; }
+      .feed-panel  { flex:none; min-height:160px; }
+      .feed-body   { overflow-y:auto; max-height:200px; }
+      .map-panel   { flex:none; height:320px; }
+      .map-head    { flex-wrap:wrap; gap:4px; }
+      #map         { height:100%; }
+      .sbar        { flex-wrap:wrap; gap:4px; font-size:0.88em; }
+    }
+
     /* Pulse animation for markers */
     @keyframes pulse {
       0%,100% { box-shadow: 0 0 4px var(--a); }
@@ -250,10 +269,9 @@
   <div class="bl" id="b5">LOADING TACTICAL DISPLAY MODULE..............................PASS</div>
   <div class="bl" id="b6">CALIBRATING GEOSPATIAL ARRAY.................................PASS</div>
   <div class="bl" id="b7">NEWS UPLINK :: UAP / ANOMALOUS PHENOMENA.....................PASS</div>
-  <div class="bl" id="b8">NEWS UPLINK :: IRAN / ISLAMIC REPUBLIC.......................PASS</div>
-  <div class="bl" id="b9">RENDERING TACTICAL OVERLAY...................................PASS</div>
-  <div class="bl" id="b10">SETTING ALERT THRESHOLDS.....................................PASS</div>
-  <div class="bl" id="b11">&nbsp;</div>
+  <div class="bl" id="b8">RENDERING TACTICAL OVERLAY...................................PASS</div>
+  <div class="bl" id="b9">SETTING ALERT THRESHOLDS.....................................PASS</div>
+  <div class="bl" id="b10">&nbsp;</div>
   <div class="bl" id="b12">ALL SYSTEMS NOMINAL. MONITORING ACTIVE.</div>
   <div class="bl" id="b13">&nbsp;</div>
   <div class="bl" id="b14" style="animation:blink 0.7s step-end infinite;opacity:0">█</div>
@@ -288,17 +306,6 @@
         </div>
       </div>
 
-      <!-- IRAN FEED -->
-      <div class="feed-panel">
-        <div class="feed-head">
-          <span>// IRAN SITUATION //</span>
-          <span class="feed-tag" id="iran-tag">ACQUIRING...</span>
-        </div>
-        <div class="feed-body" id="iran-body">
-          <a class="feed-item"><span class="fi-num">--</span><span class="fi-age">--</span><span class="fi-txt">ACQUIRING IRAN UPLINK<span class="blink">_</span></span></a>
-        </div>
-      </div>
-
     </div><!-- /news-col -->
 
     <!-- ── MAP PANEL ── -->
@@ -306,8 +313,7 @@
       <div class="map-head">
         <span>// TACTICAL GEOSPATIAL DISPLAY //</span>
         <div class="map-btns">
-          <button class="map-btn active" id="btn-iran" onclick="setView('iran')">IRAN SECTOR</button>
-          <button class="map-btn" id="btn-uap"  onclick="setView('uap')">UAP SECTOR</button>
+          <button class="map-btn active" id="btn-uap" onclick="setView('uap')">UAP SECTOR</button>
           <button class="map-btn" id="btn-global" onclick="setView('global')">GLOBAL</button>
         </div>
       </div>
@@ -329,21 +335,9 @@
 <script>
 /* ════ VIEWS ════ */
 const VIEWS = {
-  iran:   { center: [32.4, 53.7], zoom: 5 },
   uap:    { center: [38.5, -100], zoom: 4 },
   global: { center: [20, 10],     zoom: 2 },
 };
-
-/* ════ LOCATIONS ════ */
-const IRAN_LOCS = [
-  { ll:[35.6892,51.3890],  label:'TEHRAN',               sub:'CAPITAL DISTRICT' },
-  { ll:[26.5667,56.2500],  label:'STRAIT OF HORMUZ',     sub:'STRATEGIC CHOKEPOINT' },
-  { ll:[29.6100,60.8600],  label:'ZAHEDAN',               sub:'SE PROVINCE' },
-  { ll:[30.2839,57.0834],  label:'KERMAN',               sub:'CENTRAL IRAN' },
-  { ll:[35.3219,46.9861],  label:'KERMANSHAH',           sub:'WESTERN IRAN' },
-  { ll:[32.6539,51.6660],  label:'ISFAHAN',              sub:'NUCLEAR FACILITIES REGION' },
-  { ll:[36.2866,49.9993],  label:'QOM',                  sub:'FORDOW SITE REGION' },
-];
 const UAP_LOCS = [
   { ll:[37.2350,-115.8111], label:'AREA 51',             sub:'GROOM LAKE, NEVADA' },
   { ll:[40.4567,-109.8933], label:'SKINWALKER RANCH',    sub:'UINTAH BASIN, UTAH' },
@@ -397,7 +391,6 @@ async function proxyFetch(url) {
 }
 
 // Feed config.
-// Iran uses Reuters + NYT as primary US sources, filtered client-side for "iran".
 // UAP uses Google News search RSS (best for niche topic queries).
 const FEEDS = {
   uap: {
@@ -406,13 +399,6 @@ const FEEDS = {
     ],
     bodyId: 'uap-body',
     tagId:  'uap-tag',
-  },
-  iran: {
-    sources: [
-      { url: 'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en', filter: null, name: 'GOOGLE NEWS' },
-    ],
-    bodyId: 'iran-body',
-    tagId:  'iran-tag',
   },
 };
 
@@ -527,13 +513,13 @@ async function loadFeed(key) {
 }
 
 async function loadAllNews() {
-  await Promise.all([loadFeed('uap'), loadFeed('iran')]);
+  await Promise.all([loadFeed('uap')]);
   const utcNow = new Date().toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
   document.getElementById('last-upd').textContent = `LAST FEED UPDATE: ${utcNow} UTC`;
 }
 
 /* ════ MAP ════ */
-let map, activeBtn = 'iran';
+let map, activeBtn = 'uap';
 
 function setView(key) {
   const v = VIEWS[key];
@@ -568,27 +554,13 @@ function initMap() {
     zoomControl: false,
     attributionControl: false,
     preferCanvas: true,
-  }).setView(VIEWS.iran.center, VIEWS.iran.zoom);
+  }).setView(VIEWS.uap.center, VIEWS.uap.zoom);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
   }).addTo(map);
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-  // Iran markers
-  IRAN_LOCS.forEach(loc => {
-    L.marker(loc.ll, { icon: makeIcon('iran') })
-      .bindPopup(popupHtml(loc), { className: '' })
-      .addTo(map);
-  });
-
-  // Iran outline ring
-  L.circle([32.4, 53.7], {
-    radius: 700000,
-    color: '#FFB000', fillColor: '#FFB000',
-    fillOpacity: 0.03, weight: 1, dashArray: '6,6'
-  }).addTo(map);
 
   // UAP markers
   UAP_LOCS.forEach(loc => {

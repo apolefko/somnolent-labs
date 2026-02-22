@@ -232,6 +232,20 @@
       vertical-align: middle;
       animation: blink 1.5s step-end infinite;
     }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      html, body { height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
+      #boot      { padding:0 6%; font-size:0.85em; }
+      .bl        { white-space:normal; }
+      #app       { height:auto; min-height:100vh; }
+      .hdr       { flex-wrap:wrap; gap:4px; }
+      .hdr-title { font-size:1.2em; letter-spacing:0.2em; }
+      .hdr-right { display:none; }
+      .grid      { grid-template-columns:1fr; }
+      .wx        { flex:none; height:auto; min-height:0; }
+      .sbar      { flex-wrap:wrap; gap:4px; font-size:0.85em; letter-spacing:0.08em; }
+    }
   </style>
 </head>
 <body>
