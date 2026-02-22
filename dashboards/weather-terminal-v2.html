@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MU-TH-UR 6000 // ATMOSPHERIC MONITOR v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --a:    #FFB000;
+      --adim: #5C3A00;
+      --amid: #9A6000;
+      --aglow: #FF8C00;
+      --bg:   #050505;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+      color: var(--a);
+      font-family: 'VT323', 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* ── SCANLINES ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.2) 3px, rgba(0,0,0,0.2) 4px
+      );
+      pointer-events: none;
+      z-index: 9000;
+    }
+
+    /* ── CRT VIGNETTE ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 100% 100% at 50% 50%,
+        transparent 48%, rgba(0,0,0,0.9) 100%);
+      pointer-events: none;
+      z-index: 9001;
+    }
+
+    /* ── BOOT ── */
+    #boot {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 22%;
+      gap: 0.32em;
+      font-size: 1.1em;
+      letter-spacing: 0.08em;
+    }
+    .bl { opacity: 0; white-space: nowrap; }
+
+    /* ── MAIN APP ── */
+    #app {
+      display: none;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      padding: 16px;
+      gap: 9px;
+      animation: flicker 14s infinite;
+    }
+
+    @keyframes flicker {
+      0%,91%,100% { opacity:1; }
+      92% { opacity:0.93; }
+      94% { opacity:0.87; }
+      96% { opacity:0.95; }
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      border: 3px solid var(--a);
+      padding: 8px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .hdr-title {
+      font-size: 1.75em;
+      letter-spacing: 0.42em;
+      text-shadow: 0 0 6px var(--a), 0 0 16px var(--aglow);
+    }
+    .hdr-right {
+      text-align: right;
+      font-size: 1.0em;
+      letter-spacing: 0.16em;
+      color: var(--adim);
+      line-height: 1.5;
+    }
+    .hdr-right em { font-style: normal; color: var(--a); }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      border: 3px solid var(--a);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .p-head {
+      border-bottom: 3px solid var(--a);
+      padding: 5px 12px;
+      font-size: 1.05em;
+      letter-spacing: 0.28em;
+      background: rgba(255,176,0,0.04);
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    .p-head .coords { color: var(--adim); }
+    .p-body {
+      padding: 11px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    /* ── CLOCK ── */
+    .clk {
+      border: 2px solid var(--adim);
+      padding: 8px 12px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .clk-time {
+      font-size: 3.6em;
+      letter-spacing: 0.1em;
+      line-height: 1;
+      text-shadow: 0 0 8px var(--a), 0 0 22px var(--aglow), 0 0 50px #FF4000;
+    }
+    .clk-date {
+      font-size: 1.05em;
+      letter-spacing: 0.14em;
+      color: var(--adim);
+      margin-top: 3px;
+    }
+    .clk-tz {
+      font-size: 0.88em;
+      letter-spacing: 0.22em;
+      color: var(--adim);
+      margin-top: 2px;
+    }
+
+    /* ── WEATHER BOX ── */
+    .wx {
+      border: 2px solid var(--adim);
+      padding: 10px 13px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .wx-label {
+      font-size: 0.9em;
+      letter-spacing: 0.3em;
+      color: var(--adim);
+      border-bottom: 1px solid var(--adim);
+      padding-bottom: 3px;
+      margin-bottom: 7px;
+      flex-shrink: 0;
+    }
+    .wx-cond {
+      font-size: 1.5em;
+      letter-spacing: 0.1em;
+      min-height: 1.3em;
+      text-shadow: 0 0 6px var(--a);
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+    .wx-tbl { font-size: 1.1em; letter-spacing: 0.07em; }
+    .wx-tbl-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255,176,0,0.1);
+    }
+    .wx-k { color: var(--amid); }
+
+    /* ── DIVIDER ── */
+    .wx-divider {
+      height: 1px;
+      background: var(--adim);
+      margin: 4px 0;
+    }
+
+    /* ── STATUS BAR ── */
+    .sbar {
+      border: 3px solid var(--a);
+      padding: 5px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.0em;
+      letter-spacing: 0.16em;
+      flex-shrink: 0;
+    }
+    .sdim { color: var(--adim); }
+
+    /* ── UTILS ── */
+    @keyframes blink { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+    .blink { animation: blink 1s step-end infinite; }
+    .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--a);
+      margin: 0 3px 1px;
+      vertical-align: middle;
+      animation: blink 1.5s step-end infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ BOOT ════════════ -->
+<div id="boot">
+  <div class="bl" id="b0">WEYLAND-YUTANI CORPORATION</div>
+  <div class="bl" id="b1">MU-TH-UR 6000 MAINFRAME  //  ATMOSPHERIC MONITORING SUBSYSTEM  v4.2.0</div>
+  <div class="bl" id="b2">COPYRIGHT 2122. ALL RIGHTS RESERVED.</div>
+  <div class="bl" id="b3">&nbsp;</div>
+  <div class="bl" id="b4">SELF-DIAGNOSTIC..............................................PASS</div>
+  <div class="bl" id="b5">LOADING CHRONOMETRIC MODULE..................................PASS</div>
+  <div class="bl" id="b6">SYNCING ATOMIC REFERENCE CLOCK...............................PASS</div>
+  <div class="bl" id="b7">UPLINK :: GAINESVILLE FL USA.................................PASS</div>
+  <div class="bl" id="b8">UPLINK :: PRISTINA KOSOVO XK.................................PASS</div>
+  <div class="bl" id="b9">FETCHING ATMOSPHERIC SENSOR DATA.............................PASS</div>
+  <div class="bl" id="b10">CALIBRATING PRESSURE / OPTICAL ARRAYS........................PASS</div>
+  <div class="bl" id="b11">&nbsp;</div>
+  <div class="bl" id="b12">ALL SYSTEMS NOMINAL. HAVE A NICE DAY.</div>
+  <div class="bl" id="b13">&nbsp;</div>
+  <div class="bl" id="b14" style="animation:blink 0.7s step-end infinite;opacity:0">█</div>
+</div>
+
+<!-- ════════════ MAIN ════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-title">MU-TH-UR 6000  //  ATMOSPHERIC MONITOR  v2</div>
+    <div class="hdr-right">
+      SYS: <em><span class="dot"></span>ONLINE</em><br>
+      UTC:&nbsp;<em id="utc">--:--:--</em>
+    </div>
+  </div>
+
+  <!-- WEATHER GRID -->
+  <div class="grid">
+
+    <!-- ── GAINESVILLE ── -->
+    <div class="panel">
+      <div class="p-head">
+        <span>// SECTOR-A &nbsp;::&nbsp; GAINESVILLE, FLORIDA &nbsp;::&nbsp; USA //</span>
+        <span class="coords">29.65°N 82.32°W</span>
+      </div>
+      <div class="p-body">
+        <div class="clk">
+          <div class="clk-time" id="clk-gvl">--:--:--</div>
+          <div class="clk-date" id="dat-gvl">--- --, ----</div>
+          <div class="clk-tz">EASTERN TIME &nbsp;(ET)</div>
+        </div>
+        <div class="wx">
+          <div class="wx-label">// ATMOSPHERIC READOUT //</div>
+          <div class="wx-cond" id="cond-gvl">ACQUIRING DATA<span class="blink">_</span></div>
+          <div class="wx-tbl">
+            <div class="wx-tbl-row"><span class="wx-k">TEMPERATURE</span><span id="temp-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">FEELS LIKE</span><span id="feel-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">HUMIDITY</span><span id="humi-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">WIND</span><span id="wind-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">GUSTS</span><span id="gust-gvl">--</span></div>
+            <div class="wx-divider"></div>
+            <div class="wx-tbl-row"><span class="wx-k">PRECIPITATION</span><span id="prec-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">CLOUD COVER</span><span id="cloud-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">PRESSURE</span><span id="pres-gvl">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">SOLAR STATUS</span><span id="day-gvl">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KOSOVO ── -->
+    <div class="panel">
+      <div class="p-head">
+        <span>// SECTOR-B &nbsp;::&nbsp; PRISTINA, KOSOVO &nbsp;::&nbsp; XK //</span>
+        <span class="coords">42.66°N 21.17°E</span>
+      </div>
+      <div class="p-body">
+        <div class="clk">
+          <div class="clk-time" id="clk-xk">--:--:--</div>
+          <div class="clk-date" id="dat-xk">--- --, ----</div>
+          <div class="clk-tz">CENTRAL EUROPEAN TIME &nbsp;(CET)</div>
+        </div>
+        <div class="wx">
+          <div class="wx-label">// ATMOSPHERIC READOUT //</div>
+          <div class="wx-cond" id="cond-xk">ACQUIRING DATA<span class="blink">_</span></div>
+          <div class="wx-tbl">
+            <div class="wx-tbl-row"><span class="wx-k">TEMPERATURE</span><span id="temp-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">FEELS LIKE</span><span id="feel-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">HUMIDITY</span><span id="humi-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">WIND</span><span id="wind-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">GUSTS</span><span id="gust-xk">--</span></div>
+            <div class="wx-divider"></div>
+            <div class="wx-tbl-row"><span class="wx-k">PRECIPITATION</span><span id="prec-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">CLOUD COVER</span><span id="cloud-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">PRESSURE</span><span id="pres-xk">--</span></div>
+            <div class="wx-tbl-row"><span class="wx-k">SOLAR STATUS</span><span id="day-xk">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- NEWS SECTION -->
+  <div style="border:3px solid var(--a);flex-shrink:0;">
+    <div style="border-bottom:2px solid var(--a);padding:4px 13px;font-size:1.0em;letter-spacing:0.32em;background:rgba(255,176,0,0.04);display:flex;justify-content:space-between;">
+      <span>// INCOMING TRANSMISSION &nbsp;::&nbsp; WORLD NEWS UPLINK //</span>
+      <span style="color:var(--adim)" id="news-src">SRC: BBC WORLD — INITIALIZING</span>
+    </div>
+    <div style="padding:6px 13px;display:flex;flex-direction:column;gap:3px;" id="news-body">
+      <div style="display:flex;gap:14px;font-size:1.1em;letter-spacing:0.06em;padding:2px 0;border-bottom:1px solid rgba(255,176,0,0.1);">
+        <span style="color:var(--adim);flex-shrink:0;">01</span>
+        <span style="color:var(--amid);flex-shrink:0;">--:--</span>
+        <span>ACQUIRING NEWS UPLINK<span class="blink">_</span></span>
+      </div>
+      <div style="display:flex;gap:14px;font-size:1.1em;letter-spacing:0.06em;padding:2px 0;border-bottom:1px solid rgba(255,176,0,0.1);">
+        <span style="color:var(--adim);flex-shrink:0;">02</span>
+        <span style="color:var(--amid);flex-shrink:0;">--:--</span>
+        <span>STANDBY...</span>
+      </div>
+      <div style="display:flex;gap:14px;font-size:1.1em;letter-spacing:0.06em;padding:2px 0;">
+        <span style="color:var(--adim);flex-shrink:0;">03</span>
+        <span style="color:var(--amid);flex-shrink:0;">--:--</span>
+        <span>STANDBY...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="sbar">
+    <div><span class="dot"></span>&nbsp;SYSTEM OPERATIONAL</div>
+    <div class="sdim" id="last-upd">WEATHER: INITIALIZING</div>
+    <div>WEATHER: OPEN-METEO.COM &nbsp;|&nbsp; NEWS: BBC WORLD RSS &nbsp;<span class="dot"></span></div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ════ WMO codes ════ */
+const WMO = {
+  0:'CLEAR SKY', 1:'MAINLY CLEAR', 2:'PARTLY CLOUDY', 3:'OVERCAST',
+  45:'FOG', 48:'RIME FOG',
+  51:'LIGHT DRIZZLE', 53:'MODERATE DRIZZLE', 55:'DENSE DRIZZLE',
+  56:'LIGHT FREEZING DRIZZLE', 57:'HEAVY FREEZING DRIZZLE',
+  61:'SLIGHT RAIN', 63:'MODERATE RAIN', 65:'HEAVY RAIN',
+  66:'LIGHT FREEZING RAIN', 67:'HEAVY FREEZING RAIN',
+  71:'SLIGHT SNOWFALL', 73:'MODERATE SNOWFALL', 75:'HEAVY SNOWFALL',
+  77:'SNOW GRAINS',
+  80:'SLIGHT SHOWERS', 81:'MODERATE SHOWERS', 82:'VIOLENT SHOWERS',
+  85:'LIGHT SNOW SHOWERS', 86:'HEAVY SNOW SHOWERS',
+  95:'THUNDERSTORM', 96:'THUNDERSTORM + HAIL', 99:'THUNDERSTORM + HEAVY HAIL'
+};
+
+/* ════ helpers ════ */
+function windDir(deg) {
+  return ['N','NNE','NE','ENE','E','ESE','SE','SSE',
+          'S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(deg/22.5)%16];
+}
+function tFmt(tz) {
+  return new Date().toLocaleTimeString('en-GB',{timeZone:tz,hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function dFmt(tz) {
+  return new Date().toLocaleDateString('en-US',{timeZone:tz,weekday:'short',month:'short',day:'2-digit',year:'numeric'}).toUpperCase();
+}
+function cToF(c) { return Math.round(c * 9/5 + 32); }
+function kmhToMph(k) { return Math.round(k * 0.621371); }
+function mmToIn(mm) { return (mm * 0.0393701).toFixed(2); }
+function hpaToInHg(h) { return (h * 0.02953).toFixed(2); }
+
+/* ════ CLOCK ════ */
+function tick() {
+  document.getElementById('utc').textContent     = tFmt('UTC');
+  document.getElementById('clk-gvl').textContent = tFmt('America/New_York');
+  document.getElementById('dat-gvl').textContent = dFmt('America/New_York');
+  document.getElementById('clk-xk').textContent  = tFmt('Europe/Belgrade');
+  document.getElementById('dat-xk').textContent  = dFmt('Europe/Belgrade');
+}
+
+/* ════ WEATHER ════ */
+async function loadWeather() {
+  const BASE   = 'https://api.open-meteo.com/v1/forecast';
+  const FIELDS = [
+    'temperature_2m','relative_humidity_2m','apparent_temperature',
+    'precipitation','weather_code','wind_speed_10m','wind_direction_10m',
+    'wind_gusts_10m','cloud_cover','pressure_msl','is_day'
+  ].join(',');
+
+  const gvlURL = `${BASE}?latitude=29.6516&longitude=-82.3248&current=${FIELDS}&timezone=America%2FNew_York`;
+  const xkURL  = `${BASE}?latitude=42.6629&longitude=21.1655&current=${FIELDS}&timezone=Europe%2FBelgrade`;
+
+  function apply(p, c) {
+    document.getElementById(`cond-${p}`).textContent  = WMO[c.weather_code] || `CODE ${c.weather_code}`;
+    document.getElementById(`temp-${p}`).textContent  = `${cToF(c.temperature_2m)}°F`;
+    document.getElementById(`feel-${p}`).textContent  = `${cToF(c.apparent_temperature)}°F`;
+    document.getElementById(`humi-${p}`).textContent  = `${c.relative_humidity_2m}%`;
+    document.getElementById(`wind-${p}`).textContent  = `${kmhToMph(c.wind_speed_10m)} MPH  ${windDir(c.wind_direction_10m)}`;
+    document.getElementById(`gust-${p}`).textContent  = `${kmhToMph(c.wind_gusts_10m)} MPH`;
+    document.getElementById(`prec-${p}`).textContent  = `${mmToIn(c.precipitation)} IN/HR`;
+    document.getElementById(`cloud-${p}`).textContent = `${c.cloud_cover}%`;
+    document.getElementById(`pres-${p}`).textContent  = `${hpaToInHg(c.pressure_msl)} inHg`;
+    document.getElementById(`day-${p}`).textContent   = c.is_day === 1 ? 'DAYLIGHT' : 'NIGHTTIME';
+  }
+
+  try {
+    const [r1,r2] = await Promise.all([fetch(gvlURL),fetch(xkURL)]);
+    const [d1,d2] = await Promise.all([r1.json(),r2.json()]);
+    apply('gvl', d1.current);
+    apply('xk',  d2.current);
+    document.getElementById('last-upd').textContent = 'WEATHER UPDATE: ' + tFmt('UTC') + ' UTC';
+  } catch(e) {
+    console.error(e);
+    ['gvl','xk'].forEach(p => document.getElementById(`cond-${p}`).textContent = 'UPLINK FAILURE');
+  }
+}
+
+/* ════ NEWS ════ */
+async function loadNews() {
+  const rss   = 'https://feeds.bbci.co.uk/news/world/rss.xml';
+  const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rss);
+  try {
+    const xml   = new DOMParser().parseFromString(await (await fetch(proxy)).text(), 'text/xml');
+    const items = [...xml.querySelectorAll('item')];
+    const sixAgo = Date.now() - 6*60*60*1000;
+    const pool   = items.filter(i => new Date(i.querySelector('pubDate')?.textContent).getTime() > sixAgo);
+    const show   = (pool.length >= 3 ? pool : items).slice(0,3);
+    const now    = Date.now();
+
+    document.getElementById('news-body').innerHTML = show.map((it,i) => {
+      const title = (it.querySelector('title')?.textContent||'').replace(/<!\[CDATA\[|\]\]>/g,'').toUpperCase();
+      const pub   = new Date(it.querySelector('pubDate')?.textContent);
+      const age   = Math.round((now - pub.getTime())/60000);
+      const ts    = pub.toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'}) + ' UTC';
+      const ageS  = age < 60 ? `${age}M AGO` : `${Math.round(age/60)}H AGO`;
+      return `<div style="display:flex;gap:14px;font-size:1.1em;letter-spacing:0.06em;padding:2px 0;border-bottom:1px solid rgba(255,176,0,0.1);align-items:baseline;overflow:hidden;">
+        <span style="color:var(--adim);flex-shrink:0;">0${i+1}</span>
+        <span style="color:var(--amid);flex-shrink:0;font-size:0.95em;">${ts} (${ageS})</span>
+        <span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${title}</span>
+      </div>`;
+    }).join('');
+
+    document.getElementById('news-src').textContent =
+      `SRC: BBC WORLD — ${pool.length>=3?'PAST 6HR':'LATEST'} — ${tFmt('UTC')} UTC`;
+  } catch(e) {
+    console.error(e);
+    document.getElementById('news-src').textContent = 'SRC: BBC WORLD — UPLINK ERROR';
+  }
+}
+
+/* ════ BOOT ════ */
+async function boot() {
+  const lines = [...document.querySelectorAll('#boot .bl')];
+  for (let i = 0; i < lines.length-1; i++) {
+    await new Promise(r => setTimeout(r, i<3?260:100));
+    lines[i].style.opacity = '1';
+  }
+  lines[lines.length-1].style.opacity = '1';
+  loadWeather(); loadNews();
+  await new Promise(r => setTimeout(r, 900));
+  document.getElementById('boot').style.display = 'none';
+  document.getElementById('app').style.display  = 'flex';
+  tick();
+  setInterval(tick,        1000);
+  setInterval(loadWeather, 10*60*1000);
+  setInterval(loadNews,    30*60*1000);
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOMNOLENT LABS // DASHBOARDS</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --a:     #FFB000;
+      --adim:  #5C3A00;
+      --amid:  #9A6000;
+      --aglow: #FF8C00;
+      --bg:    #050505;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width:100vw; min-height:100vh;
+      background:var(--bg); color:var(--a);
+      font-family:'VT323','Courier New',monospace;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none;
+      background:repeating-linear-gradient(
+        to bottom, transparent 0px, transparent 3px,
+        rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+      );
+      z-index:100;
+    }
+    .shell {
+      max-width:860px;
+      margin:0 auto;
+      padding:48px 32px;
+    }
+    .header {
+      border-bottom:1px solid var(--adim);
+      padding-bottom:20px;
+      margin-bottom:40px;
+    }
+    .header-top {
+      display:flex;
+      align-items:baseline;
+      gap:16px;
+      margin-bottom:8px;
+    }
+    .brand {
+      font-size:2.4rem;
+      letter-spacing:0.12em;
+      text-shadow:0 0 18px var(--aglow);
+    }
+    .version {
+      font-size:1rem;
+      color:var(--amid);
+      letter-spacing:0.08em;
+    }
+    .tagline {
+      font-size:1.1rem;
+      color:var(--amid);
+      letter-spacing:0.06em;
+    }
+    .section-label {
+      font-size:0.85rem;
+      color:var(--adim);
+      letter-spacing:0.18em;
+      margin-bottom:20px;
+    }
+    .dashboard-grid {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .dashboard-entry {
+      display:flex;
+      align-items:stretch;
+      border:1px solid var(--adim);
+      transition:border-color 0.15s, background 0.15s;
+    }
+    .dashboard-entry:hover {
+      border-color:var(--amid);
+      background:rgba(255,176,0,0.04);
+    }
+    .dashboard-entry a {
+      display:flex;
+      align-items:center;
+      width:100%;
+      padding:20px 24px;
+      text-decoration:none;
+      color:inherit;
+      gap:24px;
+    }
+    .entry-id {
+      font-size:0.85rem;
+      color:var(--adim);
+      letter-spacing:0.1em;
+      min-width:48px;
+      flex-shrink:0;
+    }
+    .entry-body {
+      flex:1;
+    }
+    .entry-name {
+      font-size:1.5rem;
+      letter-spacing:0.1em;
+      text-shadow:0 0 10px rgba(255,140,0,0.4);
+      margin-bottom:4px;
+    }
+    .entry-desc {
+      font-size:1rem;
+      color:var(--amid);
+      letter-spacing:0.04em;
+      line-height:1.3;
+    }
+    .entry-arrow {
+      font-size:1.4rem;
+      color:var(--adim);
+      flex-shrink:0;
+      transition:color 0.15s, text-shadow 0.15s;
+    }
+    .dashboard-entry:hover .entry-arrow {
+      color:var(--a);
+      text-shadow:0 0 10px var(--aglow);
+    }
+    .footer {
+      margin-top:48px;
+      padding-top:20px;
+      border-top:1px solid var(--adim);
+      font-size:0.85rem;
+      color:var(--adim);
+      letter-spacing:0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div class="header-top">
+        <span class="brand">SOMNOLENT LABS</span>
+        <span class="version">// DASHBOARDS</span>
+      </div>
+      <div class="tagline">INTERNAL TOOLS &amp; EXPERIMENTAL INTERFACES</div>
+    </div>
+
+    <div class="section-label">[ SELECT MODULE ]</div>
+
+    <div class="dashboard-grid">
+
+      <div class="dashboard-entry">
+        <a href="somnolent.html">
+          <span class="entry-id">01</span>
+          <div class="entry-body">
+            <div class="entry-name">SOMNOLENT</div>
+            <div class="entry-desc">Modular terminal shell — ATMOS / SITREP / GAMING / CANIAC</div>
+          </div>
+          <span class="entry-arrow">&#x25B6;</span>
+        </a>
+      </div>
+
+      <div class="dashboard-entry">
+        <a href="situation-monitor.html">
+          <span class="entry-id">02</span>
+          <div class="entry-body">
+            <div class="entry-name">SITUATION MONITOR</div>
+            <div class="entry-desc">UAP &amp; geopolitical feed with live Leaflet map overlay</div>
+          </div>
+          <span class="entry-arrow">&#x25B6;</span>
+        </a>
+      </div>
+
+      <div class="dashboard-entry">
+        <a href="weather-terminal-v2.html">
+          <span class="entry-id">03</span>
+          <div class="entry-body">
+            <div class="entry-name">WEATHER TERMINAL</div>
+            <div class="entry-desc">Atmospheric instruments — Gainesville FL &amp; Kosovo, imperial units</div>
+          </div>
+          <span class="entry-arrow">&#x25B6;</span>
+        </a>
+      </div>
+
+    </div>
+
+    <div class="footer">SOMNOLENT LABS &mdash; NOT INDEXED &mdash; DIRECT ACCESS ONLY</div>
+  </div>
+</body>
+</html>

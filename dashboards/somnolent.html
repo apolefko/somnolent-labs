@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOMNOLENT // MODULE SHELL</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    /* ============================================================
+       GLOBAL
+       ============================================================ */
+    :root {
+      --a:     #FFB000;
+      --adim:  #5C3A00;
+      --amid:  #9A6000;
+      --aglow: #FF8C00;
+      --bg:    #050505;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width:100vw; height:100vh;
+      background:var(--bg); color:var(--a);
+      font-family:'VT323','Courier New',monospace;
+      overflow:hidden;
+    }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(
+        to bottom, transparent 0px, transparent 3px,
+        rgba(0,0,0,0.2) 3px, rgba(0,0,0,0.2) 4px
+      );
+      pointer-events:none; z-index:9000;
+    }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background:radial-gradient(ellipse 100% 100% at 50% 50%,
+        transparent 48%, rgba(0,0,0,0.88) 100%);
+      pointer-events:none; z-index:9001;
+    }
+    @keyframes flicker {
+      0%,90%,100%{opacity:1;} 91%{opacity:.93;} 93%{opacity:.87;} 95%{opacity:.95;}
+    }
+    @keyframes blink { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+    .blink { animation:blink 1s step-end infinite; }
+    .dot {
+      display:inline-block; width:8px; height:8px;
+      background:var(--a); margin:0 2px 1px; vertical-align:middle;
+      animation:blink 1.5s step-end infinite;
+    }
+
+    /* ============================================================
+       BOOT
+       ============================================================ */
+    #boot {
+      position:fixed; inset:0; background:var(--bg); z-index:9999;
+      display:flex; flex-direction:column; justify-content:center;
+      padding:0 20%; gap:0.3em; font-size:1.1em; letter-spacing:0.08em;
+    }
+    .bl { opacity:0; white-space:nowrap; }
+
+    /* ============================================================
+       SHELL
+       ============================================================ */
+    #shell {
+      display:flex; flex-direction:column;
+      width:100vw; height:100vh;
+      padding:13px; gap:8px;
+      animation:flicker 16s infinite;
+    }
+
+    /* ── HEADER ── */
+    .shell-hdr {
+      border:3px solid var(--a);
+      display:flex; align-items:stretch;
+      flex-shrink:0; height:44px;
+    }
+    .shell-brand {
+      padding:0 14px; display:flex; align-items:center;
+      font-size:1.2em; letter-spacing:0.3em;
+      text-shadow:0 0 6px var(--a),0 0 14px var(--aglow);
+      border-right:2px solid var(--a);
+      white-space:nowrap; flex-shrink:0;
+    }
+    .shell-tabs {
+      flex:1; display:flex; align-items:stretch;
+      border-right:2px solid var(--a); overflow:hidden;
+    }
+    .tab {
+      display:flex; align-items:center;
+      padding:0 16px; font-size:1.1em; letter-spacing:0.22em;
+      cursor:pointer; color:var(--amid);
+      border-right:1px solid var(--adim);
+      user-select:none; white-space:nowrap; flex-shrink:0;
+      transition:color 0.1s;
+    }
+    .tab:hover { color:var(--a); }
+    .tab.active { background:var(--a); color:var(--bg); border-right-color:var(--a); }
+    .tab-slot { color:var(--adim); font-size:1.0em; cursor:default; letter-spacing:0.18em; }
+    .tab-slot:hover { color:var(--adim); }
+    .shell-right {
+      padding:0 14px; display:flex; align-items:center; gap:10px;
+      font-size:1.0em; letter-spacing:0.14em; flex-shrink:0;
+    }
+    #mod-status {
+      color:var(--amid); padding-right:10px;
+      border-right:1px solid var(--adim); white-space:nowrap;
+    }
+    .shell-utc { color:var(--adim); white-space:nowrap; }
+    .shell-utc em { font-style:normal; color:var(--a); }
+
+    /* ── MODULE AREA ── */
+    .module-area { flex:1; min-height:0; display:flex; flex-direction:column; }
+    .module      { flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; }
+
+    /* ============================================================
+       SHARED FEED COMPONENTS
+       Used by SITREP and GAMING (and any future feed module).
+       loadFeed() renders items with these classes automatically.
+       ============================================================ */
+    .feed-panel {
+      border:3px solid var(--a);
+      display:flex; flex-direction:column;
+      flex:1; min-height:0; overflow:hidden;
+    }
+    .feed-hd {
+      border-bottom:3px solid var(--a);
+      padding:5px 11px; font-size:1.0em; letter-spacing:0.24em;
+      background:rgba(255,176,0,0.04); flex-shrink:0;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .feed-tag { font-size:0.85em; letter-spacing:0.1em; color:var(--adim); }
+    .feed-body {
+      padding:5px 10px; flex:1; overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+    /* Feed item — rendered by loadFeed() */
+    .fi {
+      display:flex; gap:8px;
+      font-size:1.03em; letter-spacing:0.05em;
+      padding:3px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+      align-items:baseline; overflow:hidden;
+      text-decoration:none; color:var(--a); cursor:pointer;
+    }
+    .fi:hover { text-shadow:0 0 8px var(--a); }
+    .fi-n { color:var(--adim); flex-shrink:0; font-size:0.9em; }
+    .fi-a { color:var(--amid); flex-shrink:0; font-size:0.88em; min-width:3.5ch; }
+    .fi-s { color:var(--amid); flex-shrink:0; font-size:0.88em; min-width:5ch; }
+    .fi-b { color:var(--bg); background:var(--a); font-size:0.75em; padding:0 3px; flex-shrink:0; }
+    .fi-x { flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+    /* ============================================================
+       MODULE: ATMOS  (#module-weather)
+       ============================================================ */
+    #module-weather .mw-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px; flex:1; min-height:0;
+    }
+    #module-weather .mw-panel {
+      border:3px solid var(--a); display:flex; flex-direction:column; min-height:0;
+    }
+    #module-weather .mw-phead {
+      border-bottom:3px solid var(--a);
+      padding:5px 12px; font-size:1.05em; letter-spacing:0.26em;
+      background:rgba(255,176,0,0.04); flex-shrink:0;
+      display:flex; justify-content:space-between;
+    }
+    #module-weather .mw-phead .coords { color:var(--adim); }
+    #module-weather .mw-pbody {
+      padding:10px; flex:1; display:flex; flex-direction:column; gap:8px; min-height:0;
+    }
+    #module-weather .mw-clk {
+      border:2px solid var(--adim); padding:7px 10px; text-align:center; flex-shrink:0;
+    }
+    #module-weather .mw-clk-time {
+      font-size:3.4em; letter-spacing:0.1em; line-height:1;
+      text-shadow:0 0 8px var(--a),0 0 22px var(--aglow),0 0 50px #FF4000;
+    }
+    #module-weather .mw-clk-date { font-size:1.0em; letter-spacing:0.13em; color:var(--adim); margin-top:3px; }
+    #module-weather .mw-clk-tz   { font-size:0.85em; letter-spacing:0.2em; color:var(--adim); margin-top:2px; }
+    #module-weather .mw-wx {
+      border:2px solid var(--adim); padding:8px 11px; flex-shrink:0;
+      display:flex; flex-direction:column;
+    }
+    #module-weather .mw-map-wrap {
+      border:2px solid var(--adim);
+      display:flex; flex-direction:column;
+      flex:1; min-height:130px;
+    }
+    #module-weather .mw-map-hd {
+      border-bottom:1px solid var(--adim);
+      padding:3px 10px; font-size:0.85em; letter-spacing:0.24em;
+      color:var(--adim); flex-shrink:0;
+    }
+    #module-weather .mw-map { flex:1; min-height:0; }
+    #module-weather .mw-wx-lbl {
+      font-size:0.88em; letter-spacing:0.28em; color:var(--adim);
+      border-bottom:1px solid var(--adim); padding-bottom:3px; margin-bottom:5px; flex-shrink:0;
+    }
+    #module-weather .mw-wx-cond {
+      font-size:1.4em; letter-spacing:0.09em; min-height:1.3em;
+      text-shadow:0 0 6px var(--a); margin-bottom:5px; flex-shrink:0;
+    }
+    #module-weather .mw-wx-tbl { font-size:1.08em; letter-spacing:0.06em; }
+    #module-weather .mw-wx-row {
+      display:flex; justify-content:space-between;
+      padding:2px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+    }
+    #module-weather .mw-wx-k { color:var(--amid); }
+    #module-weather .mw-div  { height:1px; background:var(--adim); margin:3px 0; }
+    #module-weather .mw-news { border:3px solid var(--a); flex-shrink:0; }
+    #module-weather .mw-news-hd {
+      border-bottom:2px solid var(--a); padding:3px 12px;
+      font-size:0.92em; letter-spacing:0.26em;
+      background:rgba(255,176,0,0.04);
+      display:flex; justify-content:space-between;
+    }
+    #module-weather .mw-news-body { padding:4px 12px; display:flex; flex-direction:column; gap:1px; }
+    #module-weather .mw-ni {
+      display:flex; gap:12px; font-size:1.03em; letter-spacing:0.05em;
+      padding:2px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+      overflow:hidden; align-items:baseline;
+    }
+    #module-weather .mw-ni-n { color:var(--adim); flex-shrink:0; }
+    #module-weather .mw-ni-t { color:var(--amid); flex-shrink:0; font-size:0.9em; }
+    #module-weather .mw-ni-x { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+    /* ============================================================
+       MODULE: SITREP  (#module-situation)
+       Feed items use shared .fi / .feed-* classes above.
+       ============================================================ */
+    #module-situation .ms-row  { display:flex; flex:1; gap:8px; min-height:0; }
+    #module-situation .ms-col  { flex:0 0 38%; display:flex; flex-direction:column; gap:8px; min-height:0; }
+    #module-situation .ms-map  {
+      flex:1; border:3px solid var(--a); display:flex; flex-direction:column; min-height:0;
+    }
+    #module-situation .ms-mhd  {
+      border-bottom:3px solid var(--a); padding:5px 11px;
+      font-size:1.0em; letter-spacing:0.24em;
+      background:rgba(255,176,0,0.04); flex-shrink:0;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    #module-situation .ms-mbtns { display:flex; gap:6px; }
+    #module-situation .ms-mbtn  {
+      background:var(--bg); color:var(--a); border:2px solid var(--adim);
+      font-family:'VT323',monospace; font-size:0.92em; letter-spacing:0.16em;
+      padding:1px 8px; cursor:pointer;
+    }
+    #module-situation .ms-mbtn:hover,
+    #module-situation .ms-mbtn.active { border-color:var(--a); text-shadow:0 0 8px var(--a); }
+    #sit-map { flex:1; min-height:0; }
+
+    /* ============================================================
+       MODULE: GAMING  (#module-gaming)
+       Two equal feed columns, no map. Feed items use shared classes.
+       ============================================================ */
+    #module-gaming .mg-cols {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px; flex:1; min-height:0;
+    }
+
+    /* ============================================================
+       MODULE: CANIAC  (#module-caniac)
+       Raising Cane's intelligence terminal. CSS prefix: .mc-
+       ============================================================ */
+    #module-caniac .mc-rows  { display:flex; flex-direction:column; flex:1; min-height:0; gap:8px; }
+    #module-caniac .mc-row   { display:flex; gap:8px; min-height:0; }
+    #module-caniac .mc-row-top { flex:1.6; min-height:0; }
+    #module-caniac .mc-row-bot { flex:1;   min-height:0; }
+    #module-caniac .mc-chart-panel {
+      border:3px solid var(--a); flex:1.5;
+      display:flex; flex-direction:column; min-height:0;
+    }
+    #module-caniac .mc-spec-panel {
+      border:3px solid var(--a); flex:1;
+      display:flex; flex-direction:column; min-height:0; overflow:hidden;
+    }
+    #module-caniac .mc-panel-hd {
+      border-bottom:3px solid var(--a); padding:5px 11px;
+      font-size:1.0em; letter-spacing:0.24em;
+      background:rgba(255,176,0,0.04); flex-shrink:0;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    #module-caniac .mc-panel-body {
+      flex:1; min-height:0; padding:8px 10px;
+      display:flex; flex-direction:column; gap:5px; overflow:hidden;
+    }
+    #module-caniac .mc-chart-wrap {
+      flex:1; min-height:0; position:relative; overflow:hidden;
+    }
+    #module-caniac #caniac-chart {
+      position:absolute; inset:0; width:100%; height:100%; display:block;
+    }
+    #module-caniac .mc-wave-wrap {
+      border:2px solid var(--adim); flex-shrink:0;
+      display:flex; flex-direction:column;
+    }
+    #module-caniac .mc-wave-hd {
+      border-bottom:1px solid var(--adim); padding:2px 10px;
+      font-size:0.82em; letter-spacing:0.22em; color:var(--adim); flex-shrink:0;
+    }
+    #module-caniac .mc-wave-body { height:44px; position:relative; overflow:hidden; }
+    #module-caniac #caniac-wave  { position:absolute; inset:0; width:100%; height:100%; display:block; }
+    #module-caniac .mc-sec-lbl {
+      font-size:0.86em; letter-spacing:0.28em; color:var(--adim);
+      border-bottom:1px solid var(--adim); padding-bottom:3px; margin-bottom:2px; flex-shrink:0;
+    }
+    #module-caniac .mc-row-spec {
+      display:flex; justify-content:space-between; align-items:baseline;
+      padding:2px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+      font-size:1.02em; letter-spacing:0.06em; flex-shrink:0;
+    }
+    #module-caniac .mc-sk { color:var(--amid); }
+    #module-caniac .mc-sv { color:var(--a); text-align:right; }
+    #module-caniac .mc-bar-row {
+      display:flex; align-items:center; gap:8px;
+      padding:2px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+      font-size:0.92em; letter-spacing:0.1em; flex-shrink:0;
+    }
+    #module-caniac .mc-bar-lbl  { color:var(--amid); min-width:11ch; flex-shrink:0; }
+    #module-caniac .mc-bar-track {
+      flex:1; height:6px; background:var(--adim); position:relative; overflow:hidden;
+    }
+    #module-caniac .mc-bar-fill {
+      position:absolute; left:0; top:0; height:100%;
+      background:var(--a); box-shadow:0 0 5px var(--aglow);
+    }
+    #module-caniac .mc-bar-val { color:var(--a); min-width:4ch; text-align:right; flex-shrink:0; }
+    #module-caniac .mc-alert {
+      border:2px solid var(--a); padding:5px 10px; flex-shrink:0;
+      font-size:1.08em; letter-spacing:0.14em;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    #module-caniac .mc-alert-k { color:var(--amid); font-size:0.85em; }
+    #module-caniac .mc-alert-v { color:var(--a); font-size:1.25em; text-shadow:0 0 8px var(--a); }
+
+    /* ── LEAFLET OVERRIDES ── */
+    .leaflet-tile-pane {
+      filter:sepia(1) saturate(6) hue-rotate(8deg) brightness(0.42) contrast(1.35);
+    }
+    .leaflet-popup-content-wrapper {
+      background:#0a0800 !important; border:2px solid var(--a) !important;
+      border-radius:0 !important; color:var(--a) !important;
+      box-shadow:0 0 12px rgba(255,176,0,0.4) !important;
+      font-family:'VT323',monospace !important;
+    }
+    .leaflet-popup-tip         { background:var(--a) !important; }
+    .leaflet-popup-content     { font-size:1.05em; letter-spacing:0.08em; line-height:1.5; }
+    .leaflet-popup-close-button{ color:var(--a) !important; }
+    .leaflet-control-zoom a    {
+      background:#0a0800 !important; color:var(--a) !important;
+      border:1px solid var(--a) !important; border-radius:0 !important;
+      font-family:'VT323',monospace !important; font-size:1.2em !important;
+    }
+    .leaflet-control-zoom a:hover { background:var(--a) !important; color:var(--bg) !important; }
+    .leaflet-control-attribution { display:none; }
+    .leaflet-container           { background:#050505; }
+    @keyframes pulse {
+      0%,100%{box-shadow:0 0 4px var(--a);}
+      50%     {box-shadow:0 0 14px var(--a),0 0 24px var(--aglow);}
+    }
+    .tgt-mk { width:12px; height:12px; background:transparent; border:2px solid var(--a); animation:pulse 2s ease-in-out infinite; }
+    .uap-mk { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:13px solid var(--a); filter:drop-shadow(0 0 6px var(--a)); }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ BOOT ════════════ -->
+<div id="boot">
+  <div class="bl" id="b0">SOMNOLENT SYSTEMS</div>
+  <div class="bl" id="b1">SOMNOLENT  v1.0  //  MODULAR TERMINAL SHELL</div>
+  <div class="bl" id="b2">PERSONAL USE ONLY. ALL DATA FROM PUBLIC SOURCES.</div>
+  <div class="bl" id="b3">&nbsp;</div>
+  <div class="bl" id="b4">KERNEL SELF-TEST.............................................PASS</div>
+  <div class="bl" id="b5">LOADING MODULE FRAMEWORK.....................................PASS</div>
+  <div class="bl" id="b6">REGISTERING :: ATMOS [ATMOSPHERIC MONITOR]...................PASS</div>
+  <div class="bl" id="b7">REGISTERING :: SITREP [SITUATION MONITOR]....................PASS</div>
+  <div class="bl" id="b8">REGISTERING :: GAMING [LEAKS &amp; INTEL]......................PASS</div>
+  <div class="bl">REGISTERING :: CANIAC [RAISING CANE'S INTEL].................PASS</div>
+  <div class="bl" id="b9">SYNCING CHRONOMETRIC ARRAY...................................PASS</div>
+  <div class="bl" id="b10">PREFETCHING ATMOSPHERIC DATA.................................PASS</div>
+  <div class="bl" id="b11">PREFETCHING NEWS UPLINKS.....................................PASS</div>
+  <div class="bl" id="b12">PRIMING GEOSPATIAL DISPLAY...................................PASS</div>
+  <div class="bl" id="b13">&nbsp;</div>
+  <div class="bl" id="b14">4 MODULES ACTIVE. AWAITING INPUT.</div>
+  <div class="bl" id="b15">&nbsp;</div>
+  <div class="bl" id="b16" style="animation:blink 0.7s step-end infinite;opacity:0">█</div>
+</div>
+
+<!-- ════════════ SHELL ════════════ -->
+<div id="shell" style="display:none">
+
+  <!-- ── HEADER ── -->
+  <div class="shell-hdr">
+    <div class="shell-brand">SOMNOLENT&nbsp;&nbsp;v1.0</div>
+
+    <div class="shell-tabs">
+      <!-- ─ registered module tabs ─ -->
+      <div class="tab active" id="tab-weather"   data-mod="weather"   onclick="switchModule('weather')"  >■ ATMOS</div>
+      <div class="tab"        id="tab-situation" data-mod="situation" onclick="switchModule('situation')">○ SITREP</div>
+      <div class="tab"        id="tab-gaming"    data-mod="gaming"    onclick="switchModule('gaming')"   >○ GAMING</div>
+      <div class="tab"        id="tab-caniac"    data-mod="caniac"    onclick="switchModule('caniac')"   >○ CANIAC</div>
+      <!-- ─ empty slots: add a new tab here when registering a new module ─ -->
+      <div class="tab tab-slot">+ · · ·</div>
+    </div>
+
+    <div class="shell-right">
+      <span id="mod-status"></span>
+      <span class="shell-utc">UTC&nbsp;<em id="utc">--:--:--</em>&nbsp;<span class="dot"></span>ONLINE</span>
+    </div>
+  </div>
+
+  <!-- ── MODULE AREA ── -->
+  <div class="module-area">
+
+    <!-- ════════════════════════════════════════════════
+         MODULE: ATMOS
+         Data fetched by: loadWeather(), loadWeatherNews()
+         To add a weather field: extend FIELDS + apply() in JS
+         ════════════════════════════════════════════════ -->
+    <div class="module" id="module-weather">
+
+      <div class="mw-grid">
+        <!-- GAINESVILLE -->
+        <div class="mw-panel">
+          <div class="mw-phead">
+            <span>// SECTOR-A &nbsp;::&nbsp; GAINESVILLE, FL &nbsp;::&nbsp; USA //</span>
+            <span class="coords">29.65°N 82.32°W</span>
+          </div>
+          <div class="mw-pbody">
+            <div class="mw-clk">
+              <div class="mw-clk-time" id="clk-gvl">--:--:--</div>
+              <div class="mw-clk-date" id="dat-gvl">--- --, ----</div>
+              <div class="mw-clk-tz">EASTERN TIME (ET)</div>
+            </div>
+            <div class="mw-wx">
+              <div class="mw-wx-lbl">// ATMOSPHERIC READOUT //</div>
+              <div class="mw-wx-cond" id="cond-gvl">ACQUIRING<span class="blink">_</span></div>
+              <div class="mw-wx-tbl">
+                <div class="mw-wx-row"><span class="mw-wx-k">TEMPERATURE</span><span id="temp-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">FEELS LIKE</span><span id="feel-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">HUMIDITY</span><span id="humi-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">WIND</span><span id="wind-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">GUSTS</span><span id="gust-gvl">--</span></div>
+                <div class="mw-div"></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">PRECIPITATION</span><span id="prec-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">CLOUD COVER</span><span id="cloud-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">PRESSURE</span><span id="pres-gvl">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">SOLAR STATUS</span><span id="day-gvl">--</span></div>
+              </div>
+            </div>
+            <div class="mw-map-wrap">
+              <div class="mw-map-hd">// GEOSPATIAL  ·  29.65°N  82.32°W //</div>
+              <div class="mw-map" id="wx-map-gvl"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KOSOVO -->
+        <div class="mw-panel">
+          <div class="mw-phead">
+            <span>// SECTOR-B &nbsp;::&nbsp; PRISTINA, KOSOVO &nbsp;::&nbsp; XK //</span>
+            <span class="coords">42.66°N 21.17°E</span>
+          </div>
+          <div class="mw-pbody">
+            <div class="mw-clk">
+              <div class="mw-clk-time" id="clk-xk">--:--:--</div>
+              <div class="mw-clk-date" id="dat-xk">--- --, ----</div>
+              <div class="mw-clk-tz">CENTRAL EUROPEAN TIME (CET)</div>
+            </div>
+            <div class="mw-wx">
+              <div class="mw-wx-lbl">// ATMOSPHERIC READOUT //</div>
+              <div class="mw-wx-cond" id="cond-xk">ACQUIRING<span class="blink">_</span></div>
+              <div class="mw-wx-tbl">
+                <div class="mw-wx-row"><span class="mw-wx-k">TEMPERATURE</span><span id="temp-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">FEELS LIKE</span><span id="feel-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">HUMIDITY</span><span id="humi-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">WIND</span><span id="wind-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">GUSTS</span><span id="gust-xk">--</span></div>
+                <div class="mw-div"></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">PRECIPITATION</span><span id="prec-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">CLOUD COVER</span><span id="cloud-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">PRESSURE</span><span id="pres-xk">--</span></div>
+                <div class="mw-wx-row"><span class="mw-wx-k">SOLAR STATUS</span><span id="day-xk">--</span></div>
+              </div>
+            </div>
+            <div class="mw-map-wrap">
+              <div class="mw-map-hd">// GEOSPATIAL  ·  42.66°N  21.17°E //</div>
+              <div class="mw-map" id="wx-map-xk"></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /mw-grid -->
+
+      <!-- BBC news strip -->
+      <div class="mw-news">
+        <div class="mw-news-hd">
+          <span>// WORLD NEWS UPLINK //</span>
+          <span id="wx-news-src" style="color:var(--adim);font-size:0.88em;">BBC WORLD — INITIALIZING</span>
+        </div>
+        <div class="mw-news-body" id="wx-news-body">
+          <div class="mw-ni"><span class="mw-ni-n">01</span><span class="mw-ni-t">--:--</span><span class="mw-ni-x">ACQUIRING UPLINK<span class="blink">_</span></span></div>
+          <div class="mw-ni"><span class="mw-ni-n">02</span><span class="mw-ni-t">--:--</span><span class="mw-ni-x">STANDBY...</span></div>
+          <div class="mw-ni"><span class="mw-ni-n">03</span><span class="mw-ni-t">--:--</span><span class="mw-ni-x">STANDBY...</span></div>
+        </div>
+      </div>
+
+    </div><!-- /module-weather -->
+
+
+    <!-- ════════════════════════════════════════════════
+         MODULE: SITREP
+         Feeds: FEEDS.uap + FEEDS.iran in JS registry
+         Map markers: IRAN_LOCS / UAP_LOCS arrays
+         To add a feed topic: see FEEDS{} in JS
+         ════════════════════════════════════════════════ -->
+    <div class="module" id="module-situation" style="display:none">
+      <div class="ms-row">
+
+        <div class="ms-col">
+          <!-- UAP -->
+          <div class="feed-panel">
+            <div class="feed-hd">
+              <span>// UAP &amp; ANOMALOUS PHENOMENA //</span>
+              <span class="feed-tag" id="uap-tag">ACQUIRING...</span>
+            </div>
+            <div class="feed-body" id="uap-body">
+              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+            </div>
+          </div>
+          <!-- IRAN -->
+          <div class="feed-panel">
+            <div class="feed-hd">
+              <span>// IRAN SITUATION //</span>
+              <span class="feed-tag" id="iran-tag">ACQUIRING...</span>
+            </div>
+            <div class="feed-body" id="iran-body">
+              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="ms-map">
+          <div class="ms-mhd">
+            <span>// TACTICAL GEOSPATIAL DISPLAY //</span>
+            <div class="ms-mbtns">
+              <button class="ms-mbtn active" id="mbtn-iran"   onclick="setMapView('iran')"  >IRAN SECTOR</button>
+              <button class="ms-mbtn"        id="mbtn-uap"    onclick="setMapView('uap')"   >UAP SECTOR</button>
+              <button class="ms-mbtn"        id="mbtn-global" onclick="setMapView('global')">GLOBAL</button>
+            </div>
+          </div>
+          <div id="sit-map"></div>
+        </div>
+
+      </div>
+    </div><!-- /module-situation -->
+
+
+    <!-- ════════════════════════════════════════════════
+         MODULE: GAMING
+         Feeds: FEEDS.gleaks + FEEDS.greveal in JS registry
+         Two equal columns, no map.
+         To add a column: add feed-panel here + entry in FEEDS{}
+         ════════════════════════════════════════════════ -->
+    <div class="module" id="module-gaming" style="display:none">
+      <div class="mg-cols">
+
+        <!-- LEAKS & INTEL -->
+        <div class="feed-panel">
+          <div class="feed-hd">
+            <span>// LEAKS &amp; INTEL //</span>
+            <span class="feed-tag" id="gleaks-tag">ACQUIRING...</span>
+          </div>
+          <div class="feed-body" id="gleaks-body">
+            <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+          </div>
+        </div>
+
+        <!-- REVEALS & RUMORS -->
+        <div class="feed-panel">
+          <div class="feed-hd">
+            <span>// REVEALS &amp; RUMORS //</span>
+            <span class="feed-tag" id="greveal-tag">ACQUIRING...</span>
+          </div>
+          <div class="feed-body" id="greveal-body">
+            <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /module-gaming -->
+
+
+    <!-- ════════════════════════════════════════════════
+         MODULE: CANIAC
+         Raising Cane's intel: price history chart,
+         geopolitical pressure waveform, combo spec sheet,
+         and Iran/UAP news feeds.
+         Chart: drawCaniacChart() on canvas #caniac-chart
+         Wave:  drawCaniacWave() animation on #caniac-wave
+         Feeds: FEEDS.caniac_iran + FEEDS.caniac_uap
+         ════════════════════════════════════════════════ -->
+    <div class="module" id="module-caniac" style="display:none">
+      <div class="mc-rows">
+
+        <!-- ── TOP ROW: price chart + combo spec ── -->
+        <div class="mc-row mc-row-top">
+
+          <!-- PRICE TIMELINE + WAVEFORM -->
+          <div class="mc-chart-panel">
+            <div class="mc-panel-hd">
+              <span>// CANIAC COMBO  ·  PRICE TIMELINE  ·  2003–2025 //</span>
+              <span style="color:var(--adim);font-size:0.85em;letter-spacing:0.12em;">EST. / REGIONAL AVG / NOT OFFICIAL</span>
+            </div>
+            <div class="mc-panel-body">
+              <div class="mc-chart-wrap">
+                <canvas id="caniac-chart"></canvas>
+              </div>
+              <div class="mc-wave-wrap">
+                <div class="mc-wave-hd">// GEOPOLITICAL PRESSURE WAVEFORM  ·  IRAN + UAP COMPOSITE INDEX //</div>
+                <div class="mc-wave-body">
+                  <canvas id="caniac-wave"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMBO INTEL DOSSIER -->
+          <div class="mc-spec-panel">
+            <div class="mc-panel-hd">
+              <span>// CANIAC COMBO  ·  INTEL DOSSIER //</span>
+            </div>
+            <div class="mc-panel-body">
+              <div class="mc-alert">
+                <span class="mc-alert-k">CURRENT PRICE EST.</span>
+                <span class="mc-alert-v">$14.99&nbsp;<span class="blink">▲</span></span>
+              </div>
+              <div class="mc-sec-lbl">// DESIGNATION //</div>
+              <div class="mc-row-spec"><span class="mc-sk">COMBO ID</span><span class="mc-sv">CANIAC COMBO</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">STATUS</span><span class="mc-sv">ACTIVE <span class="dot"></span></span></div>
+              <div class="mc-row-spec"><span class="mc-sk">ORIGIN</span><span class="mc-sv">BATON ROUGE, LA</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">YEAR ACTIVE</span><span class="mc-sv">1996–PRESENT</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">UNITS DEPLOYED</span><span class="mc-sv">700+ LOCATIONS</span></div>
+              <div class="mc-sec-lbl">// PAYLOAD //</div>
+              <div class="mc-row-spec"><span class="mc-sk">FINGERS</span><span class="mc-sv">6× CHICKEN TENDERS</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">SIDES</span><span class="mc-sv">FRIES + COLESLAW</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">BREAD</span><span class="mc-sv">2× TEXAS TOAST</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">SAUCE</span><span class="mc-sv">2× CANE'S SAUCE</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">DRINK</span><span class="mc-sv">LARGE (32 OZ)</span></div>
+              <div class="mc-sec-lbl">// SAUCE ANALYSIS (CLASSIFIED) //</div>
+              <div class="mc-row-spec"><span class="mc-sk">BASE AGENT</span><span class="mc-sv">MAYO + KETCHUP</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">MODIFIER A</span><span class="mc-sv">WORCESTERSHIRE</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">MODIFIER B</span><span class="mc-sv">GARLIC POWDER</span></div>
+              <div class="mc-row-spec"><span class="mc-sk">HEAT SIG.</span><span class="mc-sv">BLACK PEPPER</span></div>
+              <div class="mc-sec-lbl">// THREAT VECTOR IMPACT //</div>
+              <div class="mc-bar-row">
+                <span class="mc-bar-lbl">IRAN (OIL)</span>
+                <div class="mc-bar-track"><div class="mc-bar-fill" style="width:72%"></div></div>
+                <span class="mc-bar-val">72%</span>
+              </div>
+              <div class="mc-bar-row">
+                <span class="mc-bar-lbl">UAP DISTRACT</span>
+                <div class="mc-bar-track"><div class="mc-bar-fill" style="width:38%"></div></div>
+                <span class="mc-bar-val">38%</span>
+              </div>
+              <div class="mc-bar-row">
+                <span class="mc-bar-lbl">INFLATION</span>
+                <div class="mc-bar-track"><div class="mc-bar-fill" style="width:91%"></div></div>
+                <span class="mc-bar-val">91%</span>
+              </div>
+              <div class="mc-bar-row">
+                <span class="mc-bar-lbl">SUPPLY CHAIN</span>
+                <div class="mc-bar-track"><div class="mc-bar-fill" style="width:84%"></div></div>
+                <span class="mc-bar-val">84%</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /mc-row-top -->
+
+        <!-- ── BOTTOM ROW: threat feeds ── -->
+        <div class="mc-row mc-row-bot">
+
+          <div class="feed-panel">
+            <div class="feed-hd">
+              <span>// IRAN  ·  SUPPLY CHAIN THREAT VECTOR //</span>
+              <span class="feed-tag" id="caniac-iran-tag">ACQUIRING...</span>
+            </div>
+            <div class="feed-body" id="caniac-iran-body">
+              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+            </div>
+          </div>
+
+          <div class="feed-panel">
+            <div class="feed-hd">
+              <span>// UAP  ·  OVERHEAD DISTRACTION INDEX //</span>
+              <span class="feed-tag" id="caniac-uap-tag">ACQUIRING...</span>
+            </div>
+            <div class="feed-body" id="caniac-uap-body">
+              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+            </div>
+          </div>
+
+        </div><!-- /mc-row-bot -->
+
+      </div><!-- /mc-rows -->
+    </div><!-- /module-caniac -->
+
+  </div><!-- /module-area -->
+</div><!-- /shell -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>'use strict';
+
+/* ── CLOCK ── */
+function tFmt(tz) {
+  return new Date().toLocaleTimeString('en-GB',{timeZone:tz,hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function dFmt(tz) {
+  return new Date().toLocaleDateString('en-US',{timeZone:tz,weekday:'short',month:'short',day:'2-digit',year:'numeric'}).toUpperCase();
+}
+function tick() {
+  document.getElementById('utc').textContent     = tFmt('UTC');
+  document.getElementById('clk-gvl').textContent = tFmt('America/New_York');
+  document.getElementById('dat-gvl').textContent = dFmt('America/New_York');
+  document.getElementById('clk-xk').textContent  = tFmt('Europe/Belgrade');
+  document.getElementById('dat-xk').textContent  = dFmt('Europe/Belgrade');
+}
+
+/* ════════════════════════════════════════════════════════
+   MODULE REGISTRY
+   ─────────────────────────────────────────────────────
+   To add a new module:
+     1. Add <div class="module" id="module-YOURKEY"> in HTML
+     2. Add CSS scoped to #module-YOURKEY
+     3. Add a <div class="tab"> in .shell-tabs
+     4. Add an entry here in MODULES
+   ════════════════════════════════════════════════════════ */
+let activeModule  = 'weather';
+let situMapInited = false;
+let wxMapsInited  = false;
+
+const MODULES = {
+  weather: {
+    label: 'ATMOS',
+    onShow() {
+      setModStatus('WX: ' + tFmt('UTC') + ' UTC');
+      setTimeout(() => { window.wxMapGvl?.invalidateSize(); window.wxMapXk?.invalidateSize(); }, 60);
+    },
+  },
+  situation: {
+    label: 'SITREP',
+    onShow() {
+      if (!situMapInited) { situMapInited = true; setTimeout(initSituMap, 60); }
+      else { setTimeout(() => window.situMap?.invalidateSize(), 60); }
+      feedCountTick(false);
+    },
+  },
+  gaming: {
+    label: 'GAMING',
+    onShow() { feedCountTick(false); },
+  },
+  caniac: {
+    label: 'CANIAC',
+    onShow() {
+      feedCountTick(false);
+      setTimeout(() => { drawCaniacChart(); startCaniacWave(); }, 80);
+    },
+  },
+  // ── ADD NEW MODULES HERE ──
+};
+
+function setModStatus(text) { document.getElementById('mod-status').textContent = text; }
+
+function switchModule(id) {
+  if (!MODULES[id] || id === activeModule) return;
+  stopCaniacWave();
+  const area = document.querySelector('.module-area');
+  area.style.transition = 'opacity 0.07s';
+  area.style.opacity    = '0';
+  setTimeout(() => {
+    document.querySelectorAll('.module').forEach(m => m.style.display = 'none');
+    document.getElementById('module-' + id).style.display = 'flex';
+    document.querySelectorAll('.tab[data-mod]').forEach(t => {
+      t.classList.remove('active');
+      t.textContent = '○ ' + MODULES[t.dataset.mod].label;
+    });
+    const tEl = document.getElementById('tab-' + id);
+    tEl.classList.add('active');
+    tEl.textContent = '■ ' + MODULES[id].label;
+    activeModule = id;
+    MODULES[id].onShow?.();
+    area.style.opacity = '1';
+  }, 80);
+}
+
+/* ════════════════════════════════════════════════════════
+   ATMOS MODULE
+   ════════════════════════════════════════════════════════ */
+const WMO = {
+  0:'CLEAR SKY',1:'MAINLY CLEAR',2:'PARTLY CLOUDY',3:'OVERCAST',
+  45:'FOG',48:'RIME FOG',
+  51:'LIGHT DRIZZLE',53:'MODERATE DRIZZLE',55:'DENSE DRIZZLE',
+  56:'LIGHT FREEZING DRIZZLE',57:'HEAVY FREEZING DRIZZLE',
+  61:'SLIGHT RAIN',63:'MODERATE RAIN',65:'HEAVY RAIN',
+  66:'LIGHT FREEZING RAIN',67:'HEAVY FREEZING RAIN',
+  71:'SLIGHT SNOWFALL',73:'MODERATE SNOWFALL',75:'HEAVY SNOWFALL',77:'SNOW GRAINS',
+  80:'SLIGHT SHOWERS',81:'MODERATE SHOWERS',82:'VIOLENT SHOWERS',
+  85:'LIGHT SNOW SHOWERS',86:'HEAVY SNOW SHOWERS',
+  95:'THUNDERSTORM',96:'THUNDERSTORM + HAIL',99:'THUNDERSTORM + HEAVY HAIL',
+};
+const windDir  = d => ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];
+const cToF     = c => Math.round(c*9/5+32);
+const kmhToMph = k => Math.round(k*0.621371);
+const mmToIn   = m => (m*0.0393701).toFixed(2);
+const hpaToInHg= h => (h*0.02953).toFixed(2);
+
+async function loadWeather() {
+  const F = ['temperature_2m','relative_humidity_2m','apparent_temperature',
+             'precipitation','weather_code','wind_speed_10m','wind_direction_10m',
+             'wind_gusts_10m','cloud_cover','pressure_msl','is_day'].join(',');
+  const G = `https://api.open-meteo.com/v1/forecast?latitude=29.6516&longitude=-82.3248&current=${F}&timezone=America%2FNew_York`;
+  const K = `https://api.open-meteo.com/v1/forecast?latitude=42.6629&longitude=21.1655&current=${F}&timezone=Europe%2FBelgrade`;
+  function apply(p,c) {
+    document.getElementById('cond-'+p).textContent  = WMO[c.weather_code]||'CODE '+c.weather_code;
+    document.getElementById('temp-'+p).textContent  = cToF(c.temperature_2m)+'°F';
+    document.getElementById('feel-'+p).textContent  = cToF(c.apparent_temperature)+'°F';
+    document.getElementById('humi-'+p).textContent  = c.relative_humidity_2m+'%';
+    document.getElementById('wind-'+p).textContent  = kmhToMph(c.wind_speed_10m)+' MPH  '+windDir(c.wind_direction_10m);
+    document.getElementById('gust-'+p).textContent  = kmhToMph(c.wind_gusts_10m)+' MPH';
+    document.getElementById('prec-'+p).textContent  = mmToIn(c.precipitation)+' IN/HR';
+    document.getElementById('cloud-'+p).textContent = c.cloud_cover+'%';
+    document.getElementById('pres-'+p).textContent  = hpaToInHg(c.pressure_msl)+' inHg';
+    document.getElementById('day-'+p).textContent   = c.is_day===1?'DAYLIGHT':'NIGHTTIME';
+  }
+  try {
+    const [r1,r2] = await Promise.all([fetch(G),fetch(K)]);
+    const [d1,d2] = await Promise.all([r1.json(),r2.json()]);
+    apply('gvl',d1.current); apply('xk',d2.current);
+    if (activeModule==='weather') setModStatus('WX: '+tFmt('UTC')+' UTC');
+  } catch(e) {
+    console.error('Weather:',e);
+    ['gvl','xk'].forEach(p=>document.getElementById('cond-'+p).textContent='UPLINK FAILURE');
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   SHARED NEWS UTILITIES
+   ════════════════════════════════════════════════════════ */
+async function proxyFetch(url) {
+  for (const p of [
+    'https://corsproxy.io/?'                   + encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url='       + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest='  + encodeURIComponent(url),
+  ]) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(()=>ctrl.abort(),7000);
+      const res  = await fetch(p,{signal:ctrl.signal});
+      clearTimeout(tid);
+      if (res.ok) { const t=await res.text(); if(t.length>200) return t; }
+    } catch(_) {}
+  }
+  throw new Error('All proxies exhausted');
+}
+function ageStr(ms) {
+  const m=Math.round(ms/60000);
+  return m<60?m+'M':m<1440?Math.round(m/60)+'H':Math.round(m/1440)+'D';
+}
+function cleanTitle(raw) {
+  return raw.replace(/<!\[CDATA\[|\]\]>/g,'').replace(/ - [^-]{1,40}$/,'').trim().toUpperCase();
+}
+function linkOf(item) {
+  try {
+    const g=item.querySelector('guid')?.textContent?.trim();
+    if(g?.startsWith('http')) return g;
+    for(const n of item.childNodes)
+      if(n.nodeName==='link'&&n.textContent?.trim().startsWith('http')) return n.textContent.trim();
+  } catch(_) {}
+  return '#';
+}
+function srcStr(item) {
+  const s=item.querySelector('source')?.textContent?.trim();
+  if(s) return s.replace(/<!\[CDATA\[|\]\]>/g,'').toUpperCase().slice(0,8);
+  return ((item.querySelector('title')?.textContent||'').split(' - ').pop()||'')
+    .replace(/<!\[CDATA\[|\]\]>/g,'').toUpperCase().slice(0,8);
+}
+
+/* ATMOS news strip — BBC World */
+async function loadWeatherNews() {
+  try {
+    const xml  = new DOMParser().parseFromString(await proxyFetch('https://feeds.bbci.co.uk/news/world/rss.xml'),'text/xml');
+    const items= [...xml.querySelectorAll('item')];
+    const sixAgo=Date.now()-6*60*60*1000;
+    const pool =(items.filter(i=>new Date(i.querySelector('pubDate')?.textContent).getTime()>sixAgo));
+    const show =(pool.length>=3?pool:items).slice(0,3);
+    const now  =Date.now();
+    document.getElementById('wx-news-body').innerHTML=show.map((it,i)=>{
+      const title=cleanTitle(it.querySelector('title')?.textContent||'');
+      const pub  =new Date(it.querySelector('pubDate')?.textContent);
+      const ts   =pub.toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'})+' UTC';
+      const age  =ageStr(now-pub.getTime());
+      return `<div class="mw-ni"><span class="mw-ni-n">0${i+1}</span><span class="mw-ni-t">${ts} (${age})</span><span class="mw-ni-x">${title}</span></div>`;
+    }).join('');
+    document.getElementById('wx-news-src').textContent='BBC WORLD — '+(pool.length>=3?'PAST 6HR':'LATEST')+' — '+tFmt('UTC')+' UTC';
+  } catch(e) {
+    console.error('WxNews:',e);
+    document.getElementById('wx-news-src').textContent='BBC WORLD — UPLINK ERROR';
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   FEED REGISTRY  (SITREP + GAMING modules)
+   ─────────────────────────────────────────────────────
+   To add a new feed topic:
+     1. Add an entry here in FEEDS
+     2. Add a <div class="feed-panel"> block in the target
+        module's HTML with matching bodyId and tagId
+   ════════════════════════════════════════════════════════ */
+const FEEDS = {
+  /* SITREP */
+  uap: {
+    sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'uap-body', tagId:'uap-tag',
+  },
+  iran: {
+    sources:[{url:'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'iran-body', tagId:'iran-tag',
+  },
+  /* GAMING */
+  gleaks: {
+    sources:[{url:'https://news.google.com/rss/search?q=game+leak+OR+"game+leaked"+OR+gaming+insider+OR+game+datamine&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'gleaks-body', tagId:'gleaks-tag',
+  },
+  greveal: {
+    sources:[{url:'https://news.google.com/rss/search?q=game+reveal+OR+game+rumor+OR+game+announcement+OR+game+trailer&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'greveal-body', tagId:'greveal-tag',
+  },
+  /* CANIAC */
+  caniac_iran: {
+    sources:[{url:'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'caniac-iran-body', tagId:'caniac-iran-tag',
+  },
+  caniac_uap: {
+    sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
+    bodyId:'caniac-uap-body', tagId:'caniac-uap-tag',
+  },
+  // ── ADD NEW FEEDS HERE ──
+};
+
+async function loadFeed(key) {
+  const cfg=FEEDS[key];
+  let items=[],usedSrc='?';
+  for(const src of cfg.sources) {
+    try {
+      const xml=new DOMParser().parseFromString(await proxyFetch(src.url),'text/xml');
+      let all=[...xml.querySelectorAll('item')];
+      if(src.filter) {
+        const kw=src.filter.toLowerCase();
+        all=all.filter(it=>(it.querySelector('title')?.textContent||'').toLowerCase().includes(kw)||(it.querySelector('description')?.textContent||'').toLowerCase().includes(kw));
+      }
+      if(all.length>=2){items=all;usedSrc=src.name;break;}
+    } catch(e){console.warn(`[${key}] ${src.name}:`,e.message);}
+  }
+  if(!items.length) {
+    document.getElementById(cfg.bodyId).innerHTML=`<a class="fi"><span class="fi-n">--</span><span class="fi-x">UPLINK FAILURE — ALL SOURCES UNAVAILABLE</span></a>`;
+    document.getElementById(cfg.tagId).textContent='UPLINK ERROR';
+    return;
+  }
+  const sixAgo=Date.now()-6*60*60*1000;
+  const recent=items.filter(i=>new Date(i.querySelector('pubDate')?.textContent).getTime()>sixAgo);
+  const show=(recent.length>=2?recent:items).slice(0,8);
+  const now=Date.now();
+  document.getElementById(cfg.bodyId).innerHTML=show.map((it,i)=>{
+    const title=cleanTitle(it.querySelector('title')?.textContent||'');
+    const pub  =new Date(it.querySelector('pubDate')?.textContent);
+    const age  =ageStr(now-pub.getTime());
+    const src  =srcStr(it).slice(0,8);
+    const href =linkOf(it);
+    const isNew=(now-pub.getTime())<60*60*1000;
+    return `<a class="fi" href="${href}" target="_blank" rel="noopener">
+      <span class="fi-n">0${i+1}</span><span class="fi-a">${age}</span><span class="fi-s">${src}</span>
+      ${isNew?'<span class="fi-b">NEW</span>':''}
+      <span class="fi-x">${title}</span>
+    </a>`;
+  }).join('');
+  const utcNow=tFmt('UTC').slice(0,5);
+  document.getElementById(cfg.tagId).textContent=`${usedSrc} — ${recent.length>0?recent.length+' RECENT':'TOP'} — ${utcNow} UTC`;
+}
+
+async function loadAllFeeds() {
+  await Promise.all(Object.keys(FEEDS).map(k=>loadFeed(k)));
+}
+
+/* Feed refresh countdown — runs continuously, updates header when a feed module is active */
+let feedSecs = 30*60;
+function feedCountTick(decrement=true) {
+  if(decrement) feedSecs--;
+  if(feedSecs<=0){loadAllFeeds();feedSecs=30*60;}
+  if(activeModule==='situation'||activeModule==='gaming'||activeModule==='caniac') {
+    const m=String(Math.floor(feedSecs/60)).padStart(2,'0');
+    const s=String(feedSecs%60).padStart(2,'0');
+    setModStatus(`NEXT REFRESH: ${m}:${s}`);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   ATMOS MAPS  (Gainesville + Kosovo)
+   ════════════════════════════════════════════════════════ */
+function initWeatherMaps() {
+  if (wxMapsInited) return;
+  wxMapsInited = true;
+
+  // Gainesville, FL
+  window.wxMapGvl = L.map('wx-map-gvl', {zoomControl:false, attributionControl:false})
+    .setView([29.6516, -82.3248], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18})
+    .addTo(window.wxMapGvl);
+  L.marker([29.6516, -82.3248], {icon: makeIcon('iran')})
+    .bindPopup(popupHtml({label:'GAINESVILLE', sub:'FLORIDA, USA', ll:[29.6516, -82.3248]}))
+    .addTo(window.wxMapGvl);
+
+  // Pristina, Kosovo
+  window.wxMapXk = L.map('wx-map-xk', {zoomControl:false, attributionControl:false})
+    .setView([42.6629, 21.1655], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18})
+    .addTo(window.wxMapXk);
+  L.marker([42.6629, 21.1655], {icon: makeIcon('iran')})
+    .bindPopup(popupHtml({label:'PRISTINA', sub:'KOSOVO, XK', ll:[42.6629, 21.1655]}))
+    .addTo(window.wxMapXk);
+
+  setTimeout(() => { window.wxMapGvl.invalidateSize(); window.wxMapXk.invalidateSize(); }, 120);
+}
+
+/* ════════════════════════════════════════════════════════
+   SITREP MAP
+   ════════════════════════════════════════════════════════ */
+const MAP_VIEWS={iran:{center:[32.4,53.7],zoom:5},uap:{center:[38.5,-100],zoom:4},global:{center:[20,10],zoom:2}};
+const IRAN_LOCS=[
+  {ll:[35.6892,51.3890],label:'TEHRAN',         sub:'CAPITAL DISTRICT'},
+  {ll:[26.5667,56.2500],label:'STRAIT OF HORMUZ',sub:'STRATEGIC CHOKEPOINT'},
+  {ll:[32.6539,51.6660],label:'ISFAHAN',         sub:'NUCLEAR FACILITIES REGION'},
+  {ll:[36.2866,49.9993],label:'QOM',             sub:'FORDOW SITE REGION'},
+  {ll:[35.3219,46.9861],label:'KERMANSHAH',      sub:'WESTERN IRAN'},
+  {ll:[29.6100,60.8600],label:'ZAHEDAN',         sub:'SOUTHEAST PROVINCE'},
+];
+const UAP_LOCS=[
+  {ll:[37.2350,-115.8111],label:'AREA 51',         sub:'GROOM LAKE, NEVADA'},
+  {ll:[40.4567,-109.8933],label:'SKINWALKER RANCH',sub:'UINTAH BASIN, UTAH'},
+  {ll:[30.3428, -86.8356],label:'EGLIN AFB',       sub:'NW FLORIDA — INCIDENTS'},
+  {ll:[36.8508, -76.2925],label:'NORFOLK NAS',     sub:'VIRGINIA — INCIDENTS'},
+  {ll:[32.8385,-117.1194],label:'NIMITZ INCIDENT', sub:'OFF SAN DIEGO, 2004'},
+  {ll:[51.5050,  -0.1150],label:'RENDLESHAM FOREST',sub:'SUFFOLK UK, 1980'},
+];
+function makeIcon(type){
+  return L.divIcon({className:'',
+    html:type==='uap'?'<div class="uap-mk"></div>':'<div class="tgt-mk"></div>',
+    iconSize:type==='uap'?[14,13]:[12,12],iconAnchor:type==='uap'?[7,13]:[6,6],popupAnchor:[0,-12]});
+}
+function popupHtml(loc){
+  return `<div style="font-family:'VT323',monospace;color:#FFB000;font-size:1.05em;letter-spacing:0.08em;min-width:140px;">
+    <div style="font-size:1.2em;border-bottom:1px solid #5C3A00;padding-bottom:3px;margin-bottom:4px;">${loc.label}</div>
+    <div style="color:#9A6000;">${loc.sub}</div>
+    <div style="color:#5C3A00;font-size:0.85em;margin-top:4px;">${loc.ll[0].toFixed(2)}°${loc.ll[0]>=0?'N':'S'} ${Math.abs(loc.ll[1]).toFixed(2)}°${loc.ll[1]>=0?'E':'W'}</div>
+  </div>`;
+}
+function setMapView(key){
+  const v=MAP_VIEWS[key];
+  window.situMap?.flyTo(v.center,v.zoom,{duration:1.1});
+  document.querySelectorAll('.ms-mbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mbtn-'+key)?.classList.add('active');
+}
+function initSituMap(){
+  window.situMap=L.map('sit-map',{zoomControl:false,attributionControl:false}).setView(MAP_VIEWS.iran.center,MAP_VIEWS.iran.zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(window.situMap);
+  L.control.zoom({position:'bottomright'}).addTo(window.situMap);
+  IRAN_LOCS.forEach(l=>L.marker(l.ll,{icon:makeIcon('iran')}).bindPopup(popupHtml(l)).addTo(window.situMap));
+  UAP_LOCS.forEach( l=>L.marker(l.ll,{icon:makeIcon('uap') }).bindPopup(popupHtml(l)).addTo(window.situMap));
+  L.circle([32.4,53.7],{radius:700000,color:'#FFB000',fillColor:'#FFB000',fillOpacity:0.03,weight:1,dashArray:'6,6'}).addTo(window.situMap);
+  setTimeout(()=>window.situMap.invalidateSize(),100);
+}
+
+/* ════════════════════════════════════════════════════════
+   CANIAC MODULE
+   Price history chart (canvas) + animated geopolitical
+   pressure waveform.
+   ════════════════════════════════════════════════════════ */
+const CANIAC_PRICES = [
+  {year:2003, price:5.99},
+  {year:2006, price:6.49},
+  {year:2010, price:7.29},
+  {year:2014, price:7.99},
+  {year:2017, price:8.49},
+  {year:2019, price:9.29},
+  {year:2020, price:9.99},
+  {year:2021, price:11.29},
+  {year:2022, price:12.49},
+  {year:2023, price:13.49},
+  {year:2024, price:14.29},
+  {year:2025, price:14.99},
+];
+/* Years labeled on x-axis — skip crowded right-side years */
+const CANIAC_LBL_YRS = new Set([2003,2006,2010,2014,2017,2019,2021,2023,2025]);
+/* Key event annotations */
+const CANIAC_EVENTS = [
+  {year:2020, label:'COVID'},
+  {year:2022, label:'IRAN / INFLATION'},
+  {year:2025, label:'UAP?'},
+];
+
+let caniacWaveAnim = null;
+let caniacWaveT    = 0;
+
+function drawCaniacChart() {
+  const cv = document.getElementById('caniac-chart');
+  if (!cv) return;
+  const rc = cv.getBoundingClientRect();
+  if (rc.width < 10 || rc.height < 10) return;
+  cv.width  = Math.floor(rc.width);
+  cv.height = Math.floor(rc.height);
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const PAD = {t:28, r:16, b:46, l:50};
+  const cW  = W - PAD.l - PAD.r;
+  const cH  = H - PAD.t - PAD.b;
+  const A   = '#FFB000', AD = '#5C3A00', AM = '#9A6000', AG = '#FF8C00';
+  const fSz = Math.max(12, Math.floor(W * 0.017));
+
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, W, H);
+
+  const minYr = 2003, maxYr = 2025, minPr = 4, maxPr = 16;
+  const xS = yr => PAD.l + (yr - minYr) / (maxYr - minYr) * cW;
+  const yS = pr => PAD.t + (1 - (pr - minPr) / (maxPr - minPr)) * cH;
+
+  /* horizontal grid lines */
+  ctx.font = `${fSz}px 'VT323',monospace`;
+  for (let p = 4; p <= 16; p += 2) {
+    const y = yS(p);
+    ctx.strokeStyle = AD; ctx.lineWidth = 0.5;
+    ctx.setLineDash([3, 7]);
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = AM; ctx.textAlign = 'right';
+    ctx.fillText('$' + p, PAD.l - 5, y + Math.floor(fSz * 0.4));
+  }
+
+  /* axes */
+  ctx.strokeStyle = A; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t);
+  ctx.lineTo(PAD.l, H - PAD.b);
+  ctx.lineTo(W - PAD.r, H - PAD.b);
+  ctx.stroke();
+
+  /* event annotation lines */
+  ctx.font = `${Math.max(11, Math.floor(fSz * 0.85))}px 'VT323',monospace`;
+  CANIAC_EVENTS.forEach(ev => {
+    const x = xS(ev.year);
+    ctx.strokeStyle = AM; ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.moveTo(x, PAD.t + 2); ctx.lineTo(x, H - PAD.b); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = AM; ctx.textAlign = 'center';
+    ctx.fillText(ev.label, x, PAD.t - 6);
+  });
+
+  /* glowing price line */
+  ctx.shadowColor = AG; ctx.shadowBlur = 12;
+  ctx.strokeStyle = A;  ctx.lineWidth = 2;
+  ctx.beginPath();
+  CANIAC_PRICES.forEach((d, i) => {
+    const x = xS(d.year), y = yS(d.price);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  /* data points + price + year labels */
+  ctx.font = `${fSz}px 'VT323',monospace`;
+  CANIAC_PRICES.forEach((d, i) => {
+    const x = xS(d.year), y = yS(d.price);
+    /* glow square */
+    ctx.shadowColor = AG; ctx.shadowBlur = 8;
+    ctx.fillStyle = A;
+    ctx.fillRect(x - 3, y - 3, 7, 7);
+    ctx.shadowBlur = 0;
+    /* price label — alternate above/below to reduce overlap */
+    ctx.fillStyle = A; ctx.textAlign = 'center';
+    const labelY = i % 2 === 0 ? y - 8 : y + fSz + 3;
+    ctx.fillText('$' + d.price.toFixed(2), x, labelY);
+    /* year label on x-axis (selective) */
+    if (CANIAC_LBL_YRS.has(d.year)) {
+      ctx.fillStyle = AM;
+      ctx.font = `${Math.max(11, Math.floor(fSz * 0.85))}px 'VT323',monospace`;
+      ctx.fillText(d.year, x, H - PAD.b + 14);
+      ctx.font = `${fSz}px 'VT323',monospace`;
+    }
+  });
+
+  /* disclaimer footer */
+  ctx.fillStyle = AD; ctx.textAlign = 'left';
+  ctx.font = `${Math.max(10, Math.floor(fSz * 0.8))}px 'VT323',monospace`;
+  ctx.fillText('ESTIMATED PRICES — REGIONAL AVG — NOT OFFICIAL', PAD.l + 4, H - PAD.b + 30);
+}
+
+function drawCaniacWave() {
+  const cv = document.getElementById('caniac-wave');
+  if (!cv) return;
+  const rc = cv.getBoundingClientRect();
+  if (rc.width < 10) return;
+  cv.width  = Math.floor(rc.width);
+  cv.height = Math.floor(rc.height) || 44;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.shadowColor = '#FF8C00'; ctx.shadowBlur = 7;
+  ctx.strokeStyle = '#FFB000'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const t = (x / W) * Math.PI * 10 + caniacWaveT;
+    const y = H / 2
+      + Math.sin(t)              * (H * 0.25)
+      + Math.sin(t * 2.7 + 1.2) * (H * 0.10)
+      + Math.sin(t * 0.6 - 0.8) * (H * 0.15);
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  caniacWaveT += 0.025;
+  if (activeModule === 'caniac') {
+    caniacWaveAnim = requestAnimationFrame(drawCaniacWave);
+  }
+}
+
+function startCaniacWave() {
+  if (caniacWaveAnim) cancelAnimationFrame(caniacWaveAnim);
+  caniacWaveAnim = requestAnimationFrame(drawCaniacWave);
+}
+
+function stopCaniacWave() {
+  if (caniacWaveAnim) { cancelAnimationFrame(caniacWaveAnim); caniacWaveAnim = null; }
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+   ════════════════════════════════════════════════════════ */
+async function boot(){
+  const lines=[...document.querySelectorAll('#boot .bl')];
+  for(let i=0;i<lines.length-1;i++){
+    await new Promise(r=>setTimeout(r,i<3?220:80));
+    lines[i].style.opacity='1';
+  }
+  lines[lines.length-1].style.opacity='1';
+  loadWeather(); loadWeatherNews(); loadAllFeeds();
+  await new Promise(r=>setTimeout(r,900));
+  document.getElementById('boot').style.display ='none';
+  document.getElementById('shell').style.display='flex';
+  setTimeout(()=>setModStatus('WX: '+tFmt('UTC')+' UTC'),100);
+  setTimeout(initWeatherMaps, 250);
+  tick();
+  setInterval(tick,          1000);
+  setInterval(feedCountTick, 1000);
+  setInterval(loadWeather,   10*60*1000);
+  setInterval(loadWeatherNews,30*60*1000);
+}
+boot();
+</script>
+</body>
+</html>

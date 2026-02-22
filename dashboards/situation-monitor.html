@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MU-TH-UR 6000 // SITUATION MONITOR</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    :root {
+      --a:    #FFB000;
+      --adim: #5C3A00;
+      --amid: #9A6000;
+      --aglow: #FF8C00;
+      --bg:   #050505;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width: 100vw; height: 100vh;
+      background: var(--bg);
+      color: var(--a);
+      font-family: 'VT323', 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    /* ── SCANLINES ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.2) 3px, rgba(0,0,0,0.2) 4px
+      );
+      pointer-events: none; z-index: 9000;
+    }
+
+    /* ── CRT VIGNETTE ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 100% 100% at 50% 50%,
+        transparent 48%, rgba(0,0,0,0.88) 100%);
+      pointer-events: none; z-index: 9001;
+    }
+
+    /* ── BOOT ── */
+    #boot {
+      position: fixed; inset: 0;
+      background: var(--bg); z-index: 9999;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 0 20%;
+      gap: 0.3em;
+      font-size: 1.05em;
+      letter-spacing: 0.08em;
+    }
+    .bl { opacity: 0; white-space: nowrap; }
+
+    /* ── MAIN APP ── */
+    #app {
+      display: none;
+      flex-direction: column;
+      width: 100vw; height: 100vh;
+      padding: 15px; gap: 8px;
+      animation: flicker 16s infinite;
+    }
+    @keyframes flicker {
+      0%,90%,100%{opacity:1;} 91%{opacity:.93;} 93%{opacity:.87;} 95%{opacity:.95;}
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      border: 3px solid var(--a);
+      padding: 8px 15px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    .hdr-title {
+      font-size: 1.75em; letter-spacing: 0.42em;
+      text-shadow: 0 0 6px var(--a), 0 0 16px var(--aglow);
+    }
+    .hdr-right {
+      text-align: right; font-size: 1.0em;
+      letter-spacing: 0.16em; color: var(--adim); line-height: 1.5;
+    }
+    .hdr-right em { font-style: normal; color: var(--a); }
+
+    /* ── MAIN ROW ── */
+    .main-row {
+      display: flex; flex: 1; gap: 8px; min-height: 0;
+    }
+
+    /* ── NEWS COLUMN ── */
+    .news-col {
+      flex: 0 0 38%;
+      display: flex; flex-direction: column; gap: 8px;
+      min-height: 0;
+    }
+
+    /* ── FEED PANEL ── */
+    .feed-panel {
+      border: 3px solid var(--a);
+      display: flex; flex-direction: column;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+    .feed-head {
+      border-bottom: 3px solid var(--a);
+      padding: 5px 12px;
+      font-size: 1.0em; letter-spacing: 0.28em;
+      background: rgba(255,176,0,0.04);
+      flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .feed-head .feed-tag {
+      font-size: 0.85em; letter-spacing: 0.15em; color: var(--adim);
+    }
+    .feed-body {
+      padding: 6px 10px;
+      flex: 1; overflow: hidden;
+      display: flex; flex-direction: column;
+      gap: 0;
+    }
+    .feed-item {
+      display: flex; gap: 8px;
+      font-size: 1.05em; letter-spacing: 0.05em;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,176,0,0.1);
+      align-items: baseline;
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--a);
+      cursor: pointer;
+      transition: text-shadow 0.1s;
+    }
+    .feed-item:hover { text-shadow: 0 0 10px var(--a); }
+    .fi-num  { color: var(--adim); flex-shrink: 0; font-size: 0.95em; }
+    .fi-age  { color: var(--amid); flex-shrink: 0; font-size: 0.9em; min-width: 4.5ch; }
+    .fi-src  { color: var(--amid); flex-shrink: 0; font-size: 0.9em; min-width: 5ch; }
+    .fi-txt  { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .fi-new  {
+      color: var(--bg); background: var(--a);
+      font-size: 0.75em; padding: 0 3px;
+      flex-shrink: 0; letter-spacing: 0.1em;
+    }
+
+    /* ── MAP PANEL ── */
+    .map-panel {
+      flex: 1; border: 3px solid var(--a);
+      display: flex; flex-direction: column;
+      min-height: 0;
+    }
+    .map-head {
+      border-bottom: 3px solid var(--a);
+      padding: 5px 12px;
+      font-size: 1.0em; letter-spacing: 0.28em;
+      background: rgba(255,176,0,0.04);
+      flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .map-btns { display: flex; gap: 6px; }
+    .map-btn {
+      background: var(--bg); color: var(--a);
+      border: 2px solid var(--adim);
+      font-family: 'VT323', monospace;
+      font-size: 1.0em; letter-spacing: 0.2em;
+      padding: 1px 8px; cursor: pointer;
+      transition: border-color 0.1s, text-shadow 0.1s;
+    }
+    .map-btn:hover, .map-btn.active {
+      border-color: var(--a);
+      text-shadow: 0 0 8px var(--a);
+    }
+    #map { flex: 1; min-height: 0; }
+
+    /* ── LEAFLET AMBER OVERRIDE ── */
+    .leaflet-tile-pane {
+      filter: sepia(1) saturate(6) hue-rotate(8deg) brightness(0.42) contrast(1.35);
+    }
+    .leaflet-popup-content-wrapper {
+      background: #0a0800 !important;
+      border: 2px solid var(--a) !important;
+      border-radius: 0 !important;
+      color: var(--a) !important;
+      box-shadow: 0 0 12px rgba(255,176,0,0.4) !important;
+      font-family: 'VT323', monospace !important;
+    }
+    .leaflet-popup-tip { background: var(--a) !important; }
+    .leaflet-popup-content { font-size: 1.05em; letter-spacing: 0.08em; line-height: 1.5; }
+    .leaflet-popup-close-button { color: var(--a) !important; font-size: 1.2em !important; }
+    .leaflet-control-zoom a {
+      background: #0a0800 !important; color: var(--a) !important;
+      border: 1px solid var(--a) !important; border-radius: 0 !important;
+      font-family: 'VT323', monospace !important; font-size: 1.2em !important;
+    }
+    .leaflet-control-zoom a:hover { background: var(--a) !important; color: var(--bg) !important; }
+    .leaflet-control-attribution { display: none; }
+    .leaflet-container { background: #050505; }
+
+    /* Pulse animation for markers */
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 4px var(--a); }
+      50%      { box-shadow: 0 0 14px var(--a), 0 0 24px var(--aglow); }
+    }
+    .target-marker {
+      width: 12px; height: 12px;
+      background: transparent;
+      border: 2px solid var(--a);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .uap-marker {
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 13px solid var(--a);
+      filter: drop-shadow(0 0 6px var(--a));
+    }
+
+    /* ── STATUS BAR ── */
+    .sbar {
+      border: 3px solid var(--a);
+      padding: 5px 14px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.0em; letter-spacing: 0.15em;
+      flex-shrink: 0;
+    }
+    .sdim { color: var(--adim); }
+
+    /* ── UTILS ── */
+    @keyframes blink { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+    .blink { animation: blink 1s step-end infinite; }
+    .dot {
+      display: inline-block; width: 8px; height: 8px;
+      background: var(--a); margin: 0 3px 1px; vertical-align: middle;
+      animation: blink 1.5s step-end infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ BOOT ════════════ -->
+<div id="boot">
+  <div class="bl" id="b0">WEYLAND-YUTANI CORPORATION</div>
+  <div class="bl" id="b1">MU-TH-UR 6000 MAINFRAME  //  SITUATION AWARENESS SUBSYSTEM  v1.0.0</div>
+  <div class="bl" id="b2">CLASSIFICATION: UNCLASSIFIED // OPEN SOURCE INTELLIGENCE</div>
+  <div class="bl" id="b3">&nbsp;</div>
+  <div class="bl" id="b4">SELF-DIAGNOSTIC..............................................PASS</div>
+  <div class="bl" id="b5">LOADING TACTICAL DISPLAY MODULE..............................PASS</div>
+  <div class="bl" id="b6">CALIBRATING GEOSPATIAL ARRAY.................................PASS</div>
+  <div class="bl" id="b7">NEWS UPLINK :: UAP / ANOMALOUS PHENOMENA.....................PASS</div>
+  <div class="bl" id="b8">NEWS UPLINK :: IRAN / ISLAMIC REPUBLIC.......................PASS</div>
+  <div class="bl" id="b9">RENDERING TACTICAL OVERLAY...................................PASS</div>
+  <div class="bl" id="b10">SETTING ALERT THRESHOLDS.....................................PASS</div>
+  <div class="bl" id="b11">&nbsp;</div>
+  <div class="bl" id="b12">ALL SYSTEMS NOMINAL. MONITORING ACTIVE.</div>
+  <div class="bl" id="b13">&nbsp;</div>
+  <div class="bl" id="b14" style="animation:blink 0.7s step-end infinite;opacity:0">█</div>
+</div>
+
+<!-- ════════════ MAIN ════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-title">MU-TH-UR 6000  //  SITUATION MONITOR</div>
+    <div class="hdr-right">
+      SYS: <em><span class="dot"></span>ONLINE</em> &nbsp;|&nbsp;
+      UTC:&nbsp;<em id="utc">--:--:--</em>
+    </div>
+  </div>
+
+  <!-- MAIN ROW: NEWS + MAP -->
+  <div class="main-row">
+
+    <!-- ── NEWS COLUMN ── -->
+    <div class="news-col">
+
+      <!-- UAP FEED -->
+      <div class="feed-panel">
+        <div class="feed-head">
+          <span>// UAP &amp; ANOMALOUS PHENOMENA //</span>
+          <span class="feed-tag" id="uap-tag">ACQUIRING...</span>
+        </div>
+        <div class="feed-body" id="uap-body">
+          <a class="feed-item"><span class="fi-num">--</span><span class="fi-age">--</span><span class="fi-txt">ACQUIRING UAP UPLINK<span class="blink">_</span></span></a>
+        </div>
+      </div>
+
+      <!-- IRAN FEED -->
+      <div class="feed-panel">
+        <div class="feed-head">
+          <span>// IRAN SITUATION //</span>
+          <span class="feed-tag" id="iran-tag">ACQUIRING...</span>
+        </div>
+        <div class="feed-body" id="iran-body">
+          <a class="feed-item"><span class="fi-num">--</span><span class="fi-age">--</span><span class="fi-txt">ACQUIRING IRAN UPLINK<span class="blink">_</span></span></a>
+        </div>
+      </div>
+
+    </div><!-- /news-col -->
+
+    <!-- ── MAP PANEL ── -->
+    <div class="map-panel">
+      <div class="map-head">
+        <span>// TACTICAL GEOSPATIAL DISPLAY //</span>
+        <div class="map-btns">
+          <button class="map-btn active" id="btn-iran" onclick="setView('iran')">IRAN SECTOR</button>
+          <button class="map-btn" id="btn-uap"  onclick="setView('uap')">UAP SECTOR</button>
+          <button class="map-btn" id="btn-global" onclick="setView('global')">GLOBAL</button>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+  </div><!-- /main-row -->
+
+  <!-- STATUS BAR -->
+  <div class="sbar">
+    <div><span class="dot"></span>&nbsp;MONITORING ACTIVE</div>
+    <div class="sdim" id="last-upd">LAST FEED UPDATE: --:-- UTC</div>
+    <div id="countdown">NEXT REFRESH: --:--</div>
+  </div>
+
+</div><!-- /app -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ════ VIEWS ════ */
+const VIEWS = {
+  iran:   { center: [32.4, 53.7], zoom: 5 },
+  uap:    { center: [38.5, -100], zoom: 4 },
+  global: { center: [20, 10],     zoom: 2 },
+};
+
+/* ════ LOCATIONS ════ */
+const IRAN_LOCS = [
+  { ll:[35.6892,51.3890],  label:'TEHRAN',               sub:'CAPITAL DISTRICT' },
+  { ll:[26.5667,56.2500],  label:'STRAIT OF HORMUZ',     sub:'STRATEGIC CHOKEPOINT' },
+  { ll:[29.6100,60.8600],  label:'ZAHEDAN',               sub:'SE PROVINCE' },
+  { ll:[30.2839,57.0834],  label:'KERMAN',               sub:'CENTRAL IRAN' },
+  { ll:[35.3219,46.9861],  label:'KERMANSHAH',           sub:'WESTERN IRAN' },
+  { ll:[32.6539,51.6660],  label:'ISFAHAN',              sub:'NUCLEAR FACILITIES REGION' },
+  { ll:[36.2866,49.9993],  label:'QOM',                  sub:'FORDOW SITE REGION' },
+];
+const UAP_LOCS = [
+  { ll:[37.2350,-115.8111], label:'AREA 51',             sub:'GROOM LAKE, NEVADA' },
+  { ll:[40.4567,-109.8933], label:'SKINWALKER RANCH',    sub:'UINTAH BASIN, UTAH' },
+  { ll:[30.3428,-86.8356],  label:'EGLIN AFB',           sub:'NW FLORIDA — REPORTED INCIDENTS' },
+  { ll:[36.8508,-76.2925],  label:'NORFOLK NAS',         sub:'VIRGINIA — MULTIPLE INCIDENTS' },
+  { ll:[32.8385,-117.1194], label:'NIMITZ INCIDENT',     sub:'OFF SAN DIEGO, 2004' },
+  { ll:[51.5050,-0.1150],   label:'RENDLESHAM FOREST',   sub:'SUFFOLK UK, 1980' },
+];
+
+/* ════ CLOCK ════ */
+function tFmt(tz) {
+  return new Date().toLocaleTimeString('en-GB',{timeZone:tz,hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function tick() {
+  document.getElementById('utc').textContent = tFmt('UTC');
+}
+
+/* ════ COUNTDOWN ════ */
+let refreshSecs = 30 * 60;
+function countTick() {
+  refreshSecs--;
+  if (refreshSecs <= 0) { loadAllNews(); refreshSecs = 30 * 60; }
+  const m = String(Math.floor(refreshSecs/60)).padStart(2,'0');
+  const s = String(refreshSecs % 60).padStart(2,'0');
+  document.getElementById('countdown').textContent = `NEXT REFRESH: ${m}:${s}`;
+}
+
+/* ════ NEWS PARSER ════ */
+
+// Try three proxies in order; each has a 7s timeout.
+// corsproxy.io is first because it reliably accepts null (file://) origins.
+async function proxyFetch(url) {
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  for (const pUrl of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 7000);
+      const res  = await fetch(pUrl, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 200) return text;   // sanity check — not an empty/error page
+      }
+    } catch(_) { /* try next proxy */ }
+  }
+  throw new Error('All proxies exhausted for: ' + url);
+}
+
+// Feed config.
+// Iran uses Reuters + NYT as primary US sources, filtered client-side for "iran".
+// UAP uses Google News search RSS (best for niche topic queries).
+const FEEDS = {
+  uap: {
+    sources: [
+      { url: 'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en', filter: null, name: 'GOOGLE NEWS' },
+    ],
+    bodyId: 'uap-body',
+    tagId:  'uap-tag',
+  },
+  iran: {
+    sources: [
+      { url: 'https://news.google.com/rss/search?q=Iran&hl=en-US&gl=US&ceid=US:en', filter: null, name: 'GOOGLE NEWS' },
+    ],
+    bodyId: 'iran-body',
+    tagId:  'iran-tag',
+  },
+};
+
+function ageStr(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 60)   return `${m}M`;
+  if (m < 1440) return `${Math.round(m/60)}H`;
+  return `${Math.round(m/1440)}D`;
+}
+
+// Extract the source label from an RSS item
+function srcStr(item, feedName) {
+  const s = item.querySelector('source')?.textContent?.trim();
+  if (s) return s.replace(/<!\[CDATA\[|\]\]>/g,'').toUpperCase().slice(0,10);
+  // Google News appends " - Source Name" to titles
+  const tail = item.querySelector('title')?.textContent?.split(' - ').pop() || '';
+  if (tail && tail.length < 30) return tail.replace(/<!\[CDATA\[|\]\]>/g,'').toUpperCase().slice(0,10);
+  return feedName.slice(0,10);
+}
+
+// Extract a clickable URL from an RSS item (handles both Google News and standard RSS)
+function linkOf(item) {
+  try {
+    const g = item.querySelector('guid')?.textContent?.trim();
+    if (g && g.startsWith('http')) return g;
+    for (const node of item.childNodes) {
+      if (node.nodeName === 'link') {
+        const t = node.textContent?.trim();
+        if (t && t.startsWith('http')) return t;
+        const h = node.getAttribute?.('href');
+        if (h && h.startsWith('http')) return h;
+      }
+    }
+  } catch(_) {}
+  return '#';
+}
+
+// Clean a raw RSS title string
+function cleanTitle(raw) {
+  return raw
+    .replace(/<!\[CDATA\[|\]\]>/g, '')
+    .replace(/ - [^-]{1,40}$/, '')   // strip trailing " - Source Name"
+    .trim()
+    .toUpperCase();
+}
+
+async function loadFeed(key) {
+  const cfg   = FEEDS[key];
+  let items   = [];
+  let usedSrc = '?';
+
+  // Try each source URL in order; stop at the first that yields items
+  for (const src of cfg.sources) {
+    try {
+      const text = await proxyFetch(src.url);
+      const xml  = new DOMParser().parseFromString(text, 'text/xml');
+      let all    = [...xml.querySelectorAll('item')];
+
+      // Client-side keyword filter for non-search feeds
+      if (src.filter) {
+        const kw = src.filter.toLowerCase();
+        all = all.filter(it => {
+          const t = (it.querySelector('title')?.textContent || '').toLowerCase();
+          const d = (it.querySelector('description')?.textContent || '').toLowerCase();
+          return t.includes(kw) || d.includes(kw);
+        });
+      }
+
+      if (all.length >= 2) {
+        items   = all;
+        usedSrc = src.name;
+        break;
+      }
+    } catch(e) {
+      console.warn(`[${key}] source failed (${src.name}):`, e.message);
+    }
+  }
+
+  if (items.length === 0) {
+    document.getElementById(cfg.bodyId).innerHTML =
+      `<a class="feed-item"><span class="fi-num">--</span><span class="fi-txt">UPLINK FAILURE — ALL SOURCES UNAVAILABLE</span></a>`;
+    document.getElementById(cfg.tagId).textContent = 'UPLINK ERROR';
+    return;
+  }
+
+  const sixAgo = Date.now() - 6*60*60*1000;
+  const recent = items.filter(i => new Date(i.querySelector('pubDate')?.textContent).getTime() > sixAgo);
+  const pool   = recent.length >= 2 ? recent : items;
+  const show   = pool.slice(0, 6);
+  const now    = Date.now();
+
+  document.getElementById(cfg.bodyId).innerHTML = show.map((it, i) => {
+    const title = cleanTitle(it.querySelector('title')?.textContent || '');
+    const pub   = new Date(it.querySelector('pubDate')?.textContent);
+    const age   = ageStr(now - pub.getTime());
+    const src   = srcStr(it, usedSrc).slice(0, 8);
+    const href  = linkOf(it);
+    const isNew = (now - pub.getTime()) < 60*60*1000;
+
+    return `<a class="feed-item" href="${href}" target="_blank" rel="noopener">
+      <span class="fi-num">0${i+1}</span>
+      <span class="fi-age">${age}</span>
+      <span class="fi-src">${src}</span>
+      ${isNew ? '<span class="fi-new">NEW</span>' : ''}
+      <span class="fi-txt">${title}</span>
+    </a>`;
+  }).join('');
+
+  const utcNow = new Date().toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
+  document.getElementById(cfg.tagId).textContent =
+    `SRC: ${usedSrc} — ${recent.length > 0 ? recent.length + ' RECENT' : 'TOP STORIES'} — ${utcNow} UTC`;
+}
+
+async function loadAllNews() {
+  await Promise.all([loadFeed('uap'), loadFeed('iran')]);
+  const utcNow = new Date().toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('last-upd').textContent = `LAST FEED UPDATE: ${utcNow} UTC`;
+}
+
+/* ════ MAP ════ */
+let map, activeBtn = 'iran';
+
+function setView(key) {
+  const v = VIEWS[key];
+  map.flyTo(v.center, v.zoom, { duration: 1.2 });
+  document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + key).classList.add('active');
+  activeBtn = key;
+}
+
+function makeIcon(type) {
+  return L.divIcon({
+    className: '',
+    html: type === 'uap'
+      ? `<div class="uap-marker"></div>`
+      : `<div class="target-marker"></div>`,
+    iconSize:   type === 'uap' ? [14,13] : [12,12],
+    iconAnchor: type === 'uap' ? [7,13]  : [6,6],
+    popupAnchor:[0,-12],
+  });
+}
+
+function popupHtml(loc) {
+  return `<div style="font-family:'VT323',monospace;color:#FFB000;font-size:1.1em;letter-spacing:0.08em;min-width:150px;">
+    <div style="font-size:1.3em;border-bottom:1px solid #5C3A00;padding-bottom:4px;margin-bottom:4px;">${loc.label}</div>
+    <div style="color:#9A6000;">${loc.sub}</div>
+    <div style="color:#5C3A00;font-size:0.9em;margin-top:4px;">${loc.ll[0].toFixed(2)}°N ${Math.abs(loc.ll[1]).toFixed(2)}°${loc.ll[1]>=0?'E':'W'}</div>
+  </div>`;
+}
+
+function initMap() {
+  map = L.map('map', {
+    zoomControl: false,
+    attributionControl: false,
+    preferCanvas: true,
+  }).setView(VIEWS.iran.center, VIEWS.iran.zoom);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+  }).addTo(map);
+
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  // Iran markers
+  IRAN_LOCS.forEach(loc => {
+    L.marker(loc.ll, { icon: makeIcon('iran') })
+      .bindPopup(popupHtml(loc), { className: '' })
+      .addTo(map);
+  });
+
+  // Iran outline ring
+  L.circle([32.4, 53.7], {
+    radius: 700000,
+    color: '#FFB000', fillColor: '#FFB000',
+    fillOpacity: 0.03, weight: 1, dashArray: '6,6'
+  }).addTo(map);
+
+  // UAP markers
+  UAP_LOCS.forEach(loc => {
+    L.marker(loc.ll, { icon: makeIcon('uap') })
+      .bindPopup(popupHtml(loc), { className: '' })
+      .addTo(map);
+  });
+
+  setTimeout(() => map.invalidateSize(), 150);
+}
+
+/* ════ BOOT ════ */
+async function boot() {
+  const lines = [...document.querySelectorAll('#boot .bl')];
+  for (let i = 0; i < lines.length-1; i++) {
+    await new Promise(r => setTimeout(r, i<3 ? 250 : 95));
+    lines[i].style.opacity = '1';
+  }
+  lines[lines.length-1].style.opacity = '1';
+
+  // Kick off data fetches
+  loadAllNews();
+
+  await new Promise(r => setTimeout(r, 900));
+
+  document.getElementById('boot').style.display = 'none';
+  document.getElementById('app').style.display  = 'flex';
+
+  initMap();
+  tick();
+  setInterval(tick,      1000);
+  setInterval(countTick, 1000);
+}
+
+boot();
+</script>
+</body>
+</html>
