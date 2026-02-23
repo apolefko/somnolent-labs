@@ -267,6 +267,33 @@
        MODULE: GAMING  (#module-gaming)
        Two equal feed columns, no map. Feed items use shared classes.
        ============================================================ */
+    #module-gaming .mg-plat-bar {
+      border:3px solid var(--a);
+      padding:7px 14px;
+      display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0;
+      position:relative; overflow:hidden;
+    }
+    /* amber overlay on top of the logos */
+    #module-gaming .mg-plat-bar::after {
+      content:''; position:absolute; inset:0;
+      background:rgba(255,176,0,0.18);
+      pointer-events:none; z-index:1;
+    }
+    #module-gaming .mg-plat-lbl {
+      font-size:0.86em; letter-spacing:0.28em; color:var(--adim);
+      flex-shrink:0; position:relative; z-index:2;
+    }
+    #module-gaming .mg-plat-icons {
+      display:flex; align-items:center; gap:22px;
+      position:relative; z-index:2;
+    }
+    #module-gaming .mg-plat-icon {
+      height:30px; width:auto;
+      opacity:0.35;
+      transition:opacity 0.2s; display:block;
+    }
+    #module-gaming .mg-plat-icon:hover { opacity:0.75; }
     #module-gaming .mg-cols {
       display:grid; grid-template-columns:1fr 1fr;
       gap:8px; flex:1; min-height:0;
@@ -427,8 +454,11 @@
       #module-situation .ms-mhd  { flex-wrap:wrap; gap:4px; }
       #sit-map { height:100%; }
 
-      /* ── GAMING: single column ── */
+      /* ── GAMING: single column + shrink platform bar ── */
       #module-gaming .mg-cols { grid-template-columns:1fr; }
+      #module-gaming .mg-plat-bar { flex-wrap:wrap; gap:5px; padding:5px 10px; }
+      #module-gaming .mg-plat-icons { gap:14px; flex-wrap:wrap; }
+      #module-gaming .mg-plat-icon { height:22px; }
 
       /* ── CANIAC: stack all rows vertically ── */
       #module-caniac .mc-rows        { height:auto; }
@@ -641,6 +671,19 @@
          To add a column: add feed-panel here + entry in FEEDS{}
          ════════════════════════════════════════════════ -->
     <div class="module" id="module-gaming" style="display:none">
+
+      <!-- Platform logos — amber overlay over icons -->
+      <div class="mg-plat-bar">
+        <span class="mg-plat-lbl">// PLATFORM COVERAGE //</span>
+        <div class="mg-plat-icons">
+          <img src="https://cdn.simpleicons.org/nintendo/FFB000"    class="mg-plat-icon" alt="NINTENDO">
+          <img src="https://cdn.simpleicons.org/playstation/FFB000" class="mg-plat-icon" alt="PLAYSTATION">
+          <img src="https://cdn.simpleicons.org/xbox/FFB000"        class="mg-plat-icon" alt="XBOX">
+          <img src="https://cdn.simpleicons.org/steam/FFB000"       class="mg-plat-icon" alt="PC/STEAM">
+          <img src="https://cdn.simpleicons.org/windows/FFB000"     class="mg-plat-icon" alt="PC/WINDOWS">
+        </div>
+      </div>
+
       <div class="mg-cols">
 
         <!-- LEAKS & INTEL -->
@@ -687,7 +730,7 @@
           <!-- PRICE TIMELINE + WAVEFORM -->
           <div class="mc-chart-panel">
             <div class="mc-panel-hd">
-              <span>// CANIAC COMBO  ·  PRICE TIMELINE  ·  2003–2025 //</span>
+              <span>// CANIAC COMBO  ·  PRICE TIMELINE  ·  2003–2026 //</span>
               <span style="color:var(--adim);font-size:0.85em;letter-spacing:0.12em;">EST. / REGIONAL AVG / NOT OFFICIAL</span>
             </div>
             <div class="mc-panel-body">
@@ -711,7 +754,7 @@
             <div class="mc-panel-body">
               <div class="mc-alert">
                 <span class="mc-alert-k">CURRENT PRICE EST.</span>
-                <span class="mc-alert-v">$14.99&nbsp;<span class="blink">▲</span></span>
+                <span class="mc-alert-v">$16.99&nbsp;<span class="blink">▲</span></span>
               </div>
               <div class="mc-sec-lbl">// DESIGNATION //</div>
               <div class="mc-row-spec"><span class="mc-sk">COMBO ID</span><span class="mc-sv">CANIAC COMBO</span></div>
@@ -1144,18 +1187,19 @@ const CANIAC_PRICES = [
   {year:2003, price:5.99},
   {year:2006, price:6.49},
   {year:2010, price:7.29},
-  {year:2014, price:7.99},
-  {year:2017, price:8.49},
-  {year:2019, price:9.29},
-  {year:2020, price:9.99},
-  {year:2021, price:11.29},
-  {year:2022, price:12.49},
-  {year:2023, price:13.49},
-  {year:2024, price:14.29},
-  {year:2025, price:14.99},
+  {year:2014, price:8.29},
+  {year:2017, price:9.19},
+  {year:2019, price:10.29},
+  {year:2020, price:11.49},
+  {year:2021, price:12.99},
+  {year:2022, price:13.99},
+  {year:2023, price:14.99},
+  {year:2024, price:15.69},
+  {year:2025, price:16.29},
+  {year:2026, price:16.99},   /* EST. — community-reported avg */
 ];
 /* Years labeled on x-axis — skip crowded right-side years */
-const CANIAC_LBL_YRS = new Set([2003,2006,2010,2014,2017,2019,2021,2023,2025]);
+const CANIAC_LBL_YRS = new Set([2003,2006,2010,2014,2017,2020,2022,2024,2026]);
 /* Key event annotations */
 const CANIAC_EVENTS = [
   {year:2020, label:'COVID'},
@@ -1184,13 +1228,13 @@ function drawCaniacChart() {
   ctx.fillStyle = '#050505';
   ctx.fillRect(0, 0, W, H);
 
-  const minYr = 2003, maxYr = 2025, minPr = 4, maxPr = 16;
+  const minYr = 2003, maxYr = 2026, minPr = 4, maxPr = 18;
   const xS = yr => PAD.l + (yr - minYr) / (maxYr - minYr) * cW;
   const yS = pr => PAD.t + (1 - (pr - minPr) / (maxPr - minPr)) * cH;
 
   /* horizontal grid lines */
   ctx.font = `${fSz}px 'VT323',monospace`;
-  for (let p = 4; p <= 16; p += 2) {
+  for (let p = 4; p <= 18; p += 2) {
     const y = yS(p);
     ctx.strokeStyle = AD; ctx.lineWidth = 0.5;
     ctx.setLineDash([3, 7]);
