@@ -402,6 +402,74 @@
     .tgt-mk { width:12px; height:12px; background:transparent; border:2px solid var(--a); animation:pulse 2s ease-in-out infinite; }
     .uap-mk { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:13px solid var(--a); filter:drop-shadow(0 0 6px var(--a)); }
 
+    /* ── Touch targets ── */
+    .tab, .mob-item, .mob-ham, .map-btn,
+    #module-situation .ms-mbtn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Ensure every tab / mob-item is ≥44px tall for touch */
+    .tab { min-height: 44px; }
+    .mob-item { min-height: 44px; display: flex; align-items: center; }
+
+    /* ============================================================
+       SMALL-HEIGHT SCREENS  (7" landscape: 1024×600, 800×480)
+       These screens are typically wider than 768px so the mobile
+       breakpoint above doesn't fire — but height is severely
+       limited. Compact everything vertically.
+       ============================================================ */
+    @media (max-height: 680px) {
+
+      #shell { padding: 7px; gap: 5px; }
+
+      /* ── Header ── */
+      .shell-hdr   { height: 40px; }
+      .shell-brand { padding: 0 10px; font-size: 1.1em; letter-spacing: 0.22em; }
+      .tab         { padding: 0 11px; font-size: 1.0em; letter-spacing: 0.18em; }
+      .shell-right { padding: 0 10px; font-size: 0.92em; }
+
+      /* ── Modules ── */
+      .module { gap: 5px; }
+      .feed-hd  { padding: 3px 9px; font-size: 0.92em; }
+      .feed-body { padding: 3px 8px; }
+      .fi { font-size: 0.97em; padding: 2px 0; }
+
+      /* ── ATMOS ── */
+      #module-weather .mw-phead    { padding: 3px 10px; font-size: 0.95em; }
+      #module-weather .mw-pbody    { padding: 6px; gap: 5px; }
+      #module-weather .mw-clk      { padding: 4px 8px; }
+      #module-weather .mw-clk-time { font-size: 2.4em; }
+      #module-weather .mw-clk-date { font-size: 0.92em; margin-top: 1px; }
+      #module-weather .mw-clk-tz   { font-size: 0.78em; margin-top: 1px; }
+      #module-weather .mw-wx       { padding: 5px 9px; }
+      #module-weather .mw-wx-lbl   { font-size: 0.82em; margin-bottom: 3px; }
+      #module-weather .mw-wx-cond  { font-size: 1.2em; margin-bottom: 3px; }
+      #module-weather .mw-wx-tbl   { font-size: 1.0em; }
+      #module-weather .mw-wx-row   { padding: 1px 0; }
+      #module-weather .mw-map-wrap { min-height: 90px; }
+      #module-weather .mw-map-hd   { padding: 2px 8px; font-size: 0.78em; }
+      #module-weather .mw-news-hd  { padding: 2px 10px; font-size: 0.88em; }
+      #module-weather .mw-news-body { padding: 2px 10px; }
+      #module-weather .mw-ni       { font-size: 0.96em; padding: 1px 0; }
+
+      /* ── SITREP ── */
+      #module-situation .ms-mhd  { padding: 3px 9px; font-size: 0.92em; }
+      #module-situation .ms-mbtn { padding: 1px 6px; font-size: 0.88em; }
+
+      /* ── GAMING ── */
+      #module-gaming .mg-plat-bar  { padding: 4px 10px; }
+      #module-gaming .mg-plat-icon { height: 24px; }
+
+      /* ── CANIAC ── */
+      #module-caniac .mc-panel-hd   { padding: 3px 9px; font-size: 0.92em; }
+      #module-caniac .mc-panel-body { padding: 5px 8px; gap: 3px; }
+      #module-caniac .mc-row-spec   { padding: 1px 0; font-size: 0.96em; }
+      #module-caniac .mc-bar-row    { padding: 1px 0; }
+      #module-caniac .mc-wave-body  { height: 36px; }
+      #module-caniac .mc-alert      { padding: 3px 8px; }
+
+    }
+
     /* ============================================================
        MOBILE RESPONSIVE  (≤768px)
        Desktop layout is unchanged — all overrides are here.

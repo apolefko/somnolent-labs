@@ -128,6 +128,30 @@
       color:var(--adim);
       letter-spacing:0.08em;
     }
+
+    /* ── Touch targets ── */
+    .dashboard-entry a {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Small-height screens (7" landscape) ── */
+    @media (max-height: 680px) {
+      .shell          { padding: 24px 20px; }
+      .header         { padding-bottom: 12px; margin-bottom: 20px; }
+      .brand          { font-size: 1.8rem; }
+      .section-label  { margin-bottom: 12px; }
+      .dashboard-entry a { padding: 14px 18px; gap: 16px; }
+      .entry-name     { font-size: 1.3rem; }
+      .footer         { margin-top: 24px; }
+    }
+
+    /* ── Small-width screens ── */
+    @media (max-width: 600px) {
+      .shell { padding: 24px 16px; }
+      .brand { font-size: 1.6rem; }
+      .dashboard-entry a { padding: 14px 16px; gap: 12px; }
+    }
   </style>
 </head>
 <body>

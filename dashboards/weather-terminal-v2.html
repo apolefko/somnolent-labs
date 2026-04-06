@@ -233,6 +233,29 @@
       animation: blink 1.5s step-end infinite;
     }
 
+    /* ── Touch targets ── */
+    .hdr, .sbar { touch-action: manipulation; }
+
+    /* ── SMALL-HEIGHT (7" landscape) ── */
+    @media (max-height: 680px) {
+      #app        { padding: 8px; gap: 6px; }
+      .hdr        { padding: 5px 12px; }
+      .hdr-title  { font-size: 1.4em; letter-spacing: 0.28em; }
+      .hdr-right  { font-size: 0.88em; }
+      .p-head     { padding: 3px 10px; font-size: 0.96em; }
+      .p-body     { padding: 7px; gap: 5px; }
+      .clk        { padding: 4px 10px; }
+      .clk-time   { font-size: 2.6em; }
+      .clk-date   { font-size: 0.92em; margin-top: 1px; }
+      .clk-tz     { font-size: 0.8em;  margin-top: 1px; }
+      .wx         { padding: 6px 10px; }
+      .wx-label   { font-size: 0.82em; margin-bottom: 4px; }
+      .wx-cond    { font-size: 1.25em; margin-bottom: 3px; }
+      .wx-tbl     { font-size: 1.0em; }
+      .wx-tbl-row { padding: 1px 0; }
+      .sbar       { padding: 3px 12px; font-size: 0.9em; }
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 768px) {
       html, body { height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }

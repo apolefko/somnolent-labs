@@ -199,6 +199,27 @@
     .leaflet-control-attribution { display: none; }
     .leaflet-container { background: #050505; }
 
+    /* ── Touch targets ── */
+    .map-btn, .feed-item {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .map-btn { min-height: 36px; display: inline-flex; align-items: center; }
+
+    /* ── SMALL-HEIGHT (7" landscape) ── */
+    @media (max-height: 680px) {
+      #app         { padding: 8px; gap: 5px; }
+      .hdr         { padding: 5px 12px; }
+      .hdr-title   { font-size: 1.4em; letter-spacing: 0.28em; }
+      .hdr-right   { font-size: 0.88em; }
+      .feed-head   { padding: 3px 10px; font-size: 0.92em; }
+      .feed-body   { padding: 4px 8px; }
+      .feed-item   { font-size: 0.97em; padding: 2px 0; }
+      .map-head    { padding: 3px 10px; font-size: 0.92em; }
+      .map-btn     { padding: 1px 6px; font-size: 0.88em; }
+      .sbar        { padding: 3px 12px; font-size: 0.9em; }
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 768px) {
       html, body   { height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }
