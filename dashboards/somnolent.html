@@ -84,8 +84,11 @@
     }
     .shell-tabs {
       flex:1; display:flex; align-items:stretch;
-      border-right:2px solid var(--a); overflow:hidden;
+      border-right:2px solid var(--a);
+      overflow-x:auto; overflow-y:hidden;
+      scrollbar-width:none;
     }
+    .shell-tabs::-webkit-scrollbar { display:none; }
     .tab {
       display:flex; align-items:center;
       padding:0 16px; font-size:1.1em; letter-spacing:0.22em;
@@ -402,6 +405,50 @@
     .tgt-mk { width:12px; height:12px; background:transparent; border:2px solid var(--a); animation:pulse 2s ease-in-out infinite; }
     .uap-mk { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:13px solid var(--a); filter:drop-shadow(0 0 6px var(--a)); }
 
+    /* ============================================================
+       MODULE: IRAN  (#module-iran)
+       Left: scrollable news feed.
+       Right: Polymarket Iran contracts (sorted by volume).
+       CSS prefix: .mi-
+       ============================================================ */
+    #module-iran .mi-row  { display:flex; flex:1; gap:8px; min-height:0; }
+    #module-iran .mi-left { flex:0 0 42%; display:flex; flex-direction:column; min-height:0; }
+    #module-iran .mi-right {
+      flex:1; border:3px solid var(--a);
+      display:flex; flex-direction:column; min-height:0;
+    }
+    #module-iran .mi-poly-hd {
+      border-bottom:3px solid var(--a); padding:5px 11px;
+      font-size:1.0em; letter-spacing:0.24em;
+      background:rgba(255,176,0,0.04); flex-shrink:0;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    #module-iran .mi-poly-body {
+      flex:1; overflow-y:auto; padding:4px 8px;
+      display:flex; flex-direction:column;
+    }
+    /* market row */
+    #module-iran .mi-mkt {
+      display:flex; gap:8px; align-items:baseline;
+      padding:4px 0; border-bottom:1px solid rgba(255,176,0,0.1);
+      text-decoration:none; color:var(--a); cursor:pointer; overflow:hidden;
+      transition:text-shadow 0.1s;
+    }
+    #module-iran .mi-mkt:hover { text-shadow:0 0 8px var(--a); }
+    #module-iran .mi-mk-num  { color:var(--adim); flex-shrink:0; font-size:0.9em; min-width:2.2ch; }
+    #module-iran .mi-mk-pct  {
+      flex-shrink:0; font-size:1.3em; letter-spacing:0.03em;
+      min-width:4.2ch; text-align:right; line-height:1;
+    }
+    #module-iran .mi-mk-q     { flex:1; overflow:hidden; }
+    #module-iran .mi-mk-title { font-size:1.0em; letter-spacing:0.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #module-iran .mi-mk-meta  { font-size:0.83em; letter-spacing:0.06em; color:var(--adim); margin-top:1px; }
+    #module-iran .mi-mk-vol   { color:var(--amid); }
+    /* probability tiers */
+    #module-iran .pct-hi  { color:var(--a);    text-shadow:0 0 6px var(--a); }
+    #module-iran .pct-mid { color:var(--amid); }
+    #module-iran .pct-lo  { color:var(--adim); }
+
     /* ── Touch targets ── */
     .tab, .mob-item, .mob-ham, .map-btn,
     #module-situation .ms-mbtn {
@@ -452,6 +499,11 @@
       #module-weather .mw-news-hd  { padding: 2px 10px; font-size: 0.88em; }
       #module-weather .mw-news-body { padding: 2px 10px; }
       #module-weather .mw-ni      { font-size: 0.96em; padding: 1px 0; }
+
+      /* ── IRAN ── */
+      #module-iran .mi-poly-hd { padding: 3px 9px; font-size: 0.92em; }
+      #module-iran .mi-mk-pct  { font-size: 1.1em; }
+      #module-iran .mi-mkt     { padding: 3px 0; }
 
       /* ── SITREP ── */
       #module-situation .ms-mhd  { padding: 3px 9px; font-size: 0.92em; }
@@ -516,6 +568,11 @@
       #module-weather .mw-grid     { grid-template-columns:1fr; }
       #module-weather .mw-map-wrap { flex:none; height:180px; }
 
+      /* ── IRAN: stack feed above polymarket ── */
+      #module-iran .mi-row  { flex-direction:column; }
+      #module-iran .mi-left { flex:none; }
+      #module-iran .mi-right { flex:none; height:380px; }
+
       /* ── SITREP: feed col stacks above map ── */
       #module-situation .ms-row  { flex-direction:column; }
       #module-situation .ms-col  { flex:none; }
@@ -553,7 +610,8 @@
   <div class="bl" id="b4">KERNEL SELF-TEST.............................................PASS</div>
   <div class="bl" id="b5">LOADING MODULE FRAMEWORK.....................................PASS</div>
   <div class="bl" id="b6">REGISTERING :: ATMOS [ATMOSPHERIC MONITOR]...................PASS</div>
-  <div class="bl" id="b7">REGISTERING :: SITREP [SITUATION MONITOR]....................PASS</div>
+  <div class="bl" id="b7">REGISTERING :: IRAN [SITUATION AWARENESS — IRAN]..............PASS</div>
+  <div class="bl">REGISTERING :: SITREP [SITUATION MONITOR]....................PASS</div>
   <div class="bl" id="b8">REGISTERING :: GAMING [LEAKS &amp; INTEL]......................PASS</div>
   <div class="bl">REGISTERING :: CANIAC [RAISING CANE'S INTEL].................PASS</div>
   <div class="bl" id="b9">SYNCING CHRONOMETRIC ARRAY...................................PASS</div>
@@ -576,6 +634,7 @@
     <div class="shell-tabs">
       <!-- ─ registered module tabs ─ -->
       <div class="tab active" id="tab-weather"   data-mod="weather"   onclick="switchModule('weather')"  >■ ATMOS</div>
+      <div class="tab"        id="tab-iran"      data-mod="iran"      onclick="switchModule('iran')"      >○ IRAN</div>
       <div class="tab"        id="tab-situation" data-mod="situation" onclick="switchModule('situation')">○ SITREP</div>
       <div class="tab"        id="tab-gaming"    data-mod="gaming"    onclick="switchModule('gaming')"   >○ GAMING</div>
       <div class="tab"        id="tab-caniac"    data-mod="caniac"    onclick="switchModule('caniac')"   >○ CANIAC</div>
@@ -592,6 +651,7 @@
   <!-- ── MOBILE NAV MENU ── -->
   <div class="mob-menu" id="mob-menu">
     <div class="mob-item active" data-mod="weather"   onclick="switchModule('weather');  toggleMobMenu()">■ ATMOS</div>
+    <div class="mob-item"        data-mod="iran"      onclick="switchModule('iran');      toggleMobMenu()">○ IRAN</div>
     <div class="mob-item"        data-mod="situation" onclick="switchModule('situation');toggleMobMenu()">○ SITREP</div>
     <div class="mob-item"        data-mod="gaming"    onclick="switchModule('gaming');   toggleMobMenu()">○ GAMING</div>
     <div class="mob-item"        data-mod="caniac"    onclick="switchModule('caniac');   toggleMobMenu()">○ CANIAC</div>
@@ -693,6 +753,47 @@
       </div>
 
     </div><!-- /module-weather -->
+
+
+    <!-- ════════════════════════════════════════════════
+         MODULE: IRAN
+         Left:  Google News RSS (Iran military/nuclear/geo)
+         Right: Polymarket Iran-tagged contracts, sorted by volume
+         Feeds: FEEDS.iran_news  |  Poly: loadPolyIran()
+         ════════════════════════════════════════════════ -->
+    <div class="module" id="module-iran" style="display:none">
+      <div class="mi-row">
+
+        <!-- ── LEFT: news feed ── -->
+        <div class="mi-left">
+          <div class="feed-panel">
+            <div class="feed-hd">
+              <span>// IRAN :: NEWS UPLINK //</span>
+              <span class="feed-tag" id="iran-news-tag">ACQUIRING...</span>
+            </div>
+            <div class="feed-body" id="iran-news-body" style="overflow-y:auto">
+              <a class="fi"><span class="fi-n">--</span><span class="fi-x">ACQUIRING UPLINK<span class="blink">_</span></span></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Polymarket contracts ── -->
+        <div class="mi-right">
+          <div class="mi-poly-hd">
+            <span>// POLYMARKET :: IRAN CONTRACTS //</span>
+            <span class="feed-tag" id="poly-iran-tag">ACQUIRING...</span>
+          </div>
+          <div class="mi-poly-body" id="poly-iran-body">
+            <div class="mi-mkt">
+              <span class="mi-mk-num">--</span>
+              <span class="mi-mk-pct">--</span>
+              <span class="mi-mk-q"><div class="mi-mk-title">ACQUIRING MARKET DATA<span class="blink">_</span></div></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /module-iran -->
 
 
     <!-- ════════════════════════════════════════════════
@@ -923,6 +1024,10 @@ const MODULES = {
       setTimeout(() => { window.wxMapGvl?.invalidateSize(); window.wxMapXk?.invalidateSize(); }, 60);
     },
   },
+  iran: {
+    label: 'IRAN',
+    onShow() { iranCountTick(false); },
+  },
   situation: {
     label: 'SITREP',
     onShow() {
@@ -1103,6 +1208,14 @@ async function loadWeatherNews() {
         module's HTML with matching bodyId and tagId
    ════════════════════════════════════════════════════════ */
 const FEEDS = {
+  /* IRAN */
+  iran_news: {
+    sources:[{
+      url:'https://news.google.com/rss/search?q=Iran+military+OR+Iran+nuclear+OR+Iran+attack+OR+Iran+war+OR+Iran+IRGC+OR+Iran+sanctions+OR+Iran+missile&hl=en-US&gl=US&ceid=US:en',
+      filter:null, name:'GOOGLE NEWS',
+    }],
+    bodyId:'iran-news-body', tagId:'iran-news-tag',
+  },
   /* SITREP */
   uap: {
     sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
@@ -1174,7 +1287,7 @@ let feedSecs = 30*60;
 function feedCountTick(decrement=true) {
   if(decrement) feedSecs--;
   if(feedSecs<=0){loadAllFeeds();feedSecs=30*60;}
-  if(activeModule==='situation'||activeModule==='gaming'||activeModule==='caniac') {
+  if(activeModule==='situation'||activeModule==='gaming'||activeModule==='caniac'||activeModule==='iran') {
     const m=String(Math.floor(feedSecs/60)).padStart(2,'0');
     const s=String(feedSecs%60).padStart(2,'0');
     setModStatus(`NEXT REFRESH: ${m}:${s}`);
@@ -1414,6 +1527,94 @@ function stopCaniacWave() {
 }
 
 /* ════════════════════════════════════════════════════════
+   IRAN MODULE — Polymarket contracts + refresh countdown
+   ════════════════════════════════════════════════════════ */
+async function loadPolyIran() {
+  const tag  = document.getElementById('poly-iran-tag');
+  const body = document.getElementById('poly-iran-body');
+  const API  = 'https://gamma-api.polymarket.com/markets?search=iran&active=true&limit=30&order=volumeNum&ascending=false';
+
+  let markets = [];
+  try {
+    /* Polymarket's Gamma API sets CORS headers — try direct first */
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 7000);
+    const res  = await fetch(API, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (res.ok) markets = await res.json();
+  } catch(_) {
+    try { markets = JSON.parse(await proxyFetch(API)); } catch(e) {
+      console.error('Polymarket:', e);
+      body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct pct-lo">ERR</span><span class="mi-mk-q"><div class="mi-mk-title">POLYMARKET UPLINK FAILURE</div></span></div>`;
+      tag.textContent = 'UPLINK ERROR';
+      return;
+    }
+  }
+
+  if (!Array.isArray(markets) || !markets.length) {
+    body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct">--</span><span class="mi-mk-q"><div class="mi-mk-title">NO ACTIVE IRAN CONTRACTS FOUND</div></span></div>`;
+    tag.textContent = 'NO DATA';
+    return;
+  }
+
+  /* keep only Iran-related; fall back to full list if filter yields < 2 */
+  const IRAN = /iran/i;
+  const filtered = markets.filter(m => IRAN.test(m.question || '') || IRAN.test(m.description || ''));
+  const show = (filtered.length >= 2 ? filtered : markets).slice(0, 20);
+
+  body.innerHTML = show.map((m, i) => {
+    /* YES probability */
+    let yesPct = '--', pctClass = '';
+    try {
+      const prices = typeof m.outcomePrices === 'string' ? JSON.parse(m.outcomePrices) : (m.outcomePrices || []);
+      if (prices.length >= 1) {
+        const p = Math.round(parseFloat(prices[0]) * 100);
+        yesPct = p + '%';
+        pctClass = p >= 65 ? 'pct-hi' : p >= 35 ? 'pct-mid' : 'pct-lo';
+      }
+    } catch(_) {}
+
+    /* volume */
+    const vol = parseFloat(m.volumeNum || m.volume || 0);
+    const volStr = vol >= 1e6 ? '$' + (vol/1e6).toFixed(1) + 'M'
+                 : vol >= 1e3 ? '$' + (vol/1e3).toFixed(0) + 'K'
+                 : '$' + Math.round(vol);
+
+    /* days until close */
+    const end = m.endDate ? new Date(m.endDate) : null;
+    const days = end ? Math.ceil((end - Date.now()) / 86400000) : null;
+    const expStr = days === null ? '--' : days > 0 ? days + 'D' : 'EXPD';
+
+    const href = m.slug ? 'https://polymarket.com/event/' + m.slug : '#';
+    const q    = (m.question || '').toUpperCase().replace(/ - [^-]{0,40}$/, '').trim();
+    const num  = String(i + 1).padStart(2, '0');
+
+    return `<a class="mi-mkt" href="${href}" target="_blank" rel="noopener">
+      <span class="mi-mk-num">${num}</span>
+      <span class="mi-mk-pct ${pctClass}">${yesPct}</span>
+      <span class="mi-mk-q">
+        <div class="mi-mk-title">${q}</div>
+        <div class="mi-mk-meta"><span class="mi-mk-vol">VOL ${volStr}</span>&nbsp;·&nbsp;CLOSES ${expStr}</div>
+      </span>
+    </a>`;
+  }).join('');
+
+  tag.textContent = `${show.length} CONTRACTS — ${tFmt('UTC').slice(0,5)} UTC`;
+}
+
+/* Iran module refresh countdown (Polymarket = 5 min, news = shared 30 min) */
+let iranPolySecs = 5*60;
+function iranCountTick(decrement=true) {
+  if(decrement) iranPolySecs--;
+  if(iranPolySecs <= 0) { loadPolyIran(); iranPolySecs = 5*60; }
+  if(activeModule === 'iran') {
+    const m = String(Math.floor(iranPolySecs/60)).padStart(2,'0');
+    const s = String(iranPolySecs%60).padStart(2,'0');
+    setModStatus(`POLY REFRESH: ${m}:${s}`);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
    BOOT
    ════════════════════════════════════════════════════════ */
 async function boot(){
@@ -1423,16 +1624,17 @@ async function boot(){
     lines[i].style.opacity='1';
   }
   lines[lines.length-1].style.opacity='1';
-  loadWeather(); loadWeatherNews(); loadAllFeeds();
+  loadWeather(); loadWeatherNews(); loadAllFeeds(); loadPolyIran();
   await new Promise(r=>setTimeout(r,900));
   document.getElementById('boot').style.display ='none';
   document.getElementById('shell').style.display='flex';
   setTimeout(()=>setModStatus('WX: '+tFmt('UTC')+' UTC'),100);
   setTimeout(initWeatherMaps, 250);
   tick();
-  setInterval(tick,          1000);
-  setInterval(feedCountTick, 1000);
-  setInterval(loadWeather,   10*60*1000);
+  setInterval(tick,           1000);
+  setInterval(feedCountTick,  1000);
+  setInterval(iranCountTick,  1000);
+  setInterval(loadWeather,    10*60*1000);
   setInterval(loadWeatherNews,30*60*1000);
 }
 boot();
