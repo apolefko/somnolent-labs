@@ -448,6 +448,12 @@
     #module-iran .pct-hi  { color:var(--a);    text-shadow:0 0 6px var(--a); }
     #module-iran .pct-mid { color:var(--amid); }
     #module-iran .pct-lo  { color:var(--adim); }
+    /* section divider inside polymarket panel */
+    #module-iran .mi-sec-hd {
+      font-size:0.82em; letter-spacing:0.22em; color:var(--adim);
+      border-bottom:1px solid var(--adim); padding-bottom:2px;
+      margin:6px 0 2px; flex-shrink:0;
+    }
 
     /* ── Touch targets ── */
     .tab, .mob-item, .mob-ham, .map-btn,
@@ -1208,12 +1214,15 @@ async function loadWeatherNews() {
         module's HTML with matching bodyId and tagId
    ════════════════════════════════════════════════════════ */
 const FEEDS = {
-  /* IRAN */
+  /* IRAN — multiple sources with keyword fallback filtering */
   iran_news: {
-    sources:[{
-      url:'https://news.google.com/rss/search?q=Iran+military+OR+Iran+nuclear+OR+Iran+attack+OR+Iran+war+OR+Iran+IRGC+OR+Iran+sanctions+OR+Iran+missile&hl=en-US&gl=US&ceid=US:en',
-      filter:null, name:'GOOGLE NEWS',
-    }],
+    sources:[
+      { url:'https://news.google.com/rss/search?q=Iran+military+OR+Iran+nuclear+OR+Iran+attack+OR+Iran+war+OR+Iran+IRGC+OR+Iran+sanctions+OR+Iran+missile&hl=en-US&gl=US&ceid=US:en', filter:null,   name:'GOOGLE NEWS' },
+      { url:'https://feeds.bbci.co.uk/news/world/rss.xml',                                                                                                                                filter:'iran', name:'BBC WORLD'   },
+      { url:'https://www.aljazeera.com/xml/rss/all.xml',                                                                                                                                   filter:'iran', name:'AL JAZEERA'  },
+      { url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',                                                                                                                      filter:'iran', name:'NY TIMES'    },
+      { url:'https://feeds.npr.org/1004/rss.xml',                                                                                                                                          filter:'iran', name:'NPR'         },
+    ],
     bodyId:'iran-news-body', tagId:'iran-news-tag',
   },
   /* SITREP */
@@ -1528,42 +1537,26 @@ function stopCaniacWave() {
 
 /* ════════════════════════════════════════════════════════
    IRAN MODULE — Polymarket contracts + refresh countdown
+   Fetches Iran markets + US Politics markets in parallel,
+   renders as two labelled sections in the right panel.
    ════════════════════════════════════════════════════════ */
-async function loadPolyIran() {
-  const tag  = document.getElementById('poly-iran-tag');
-  const body = document.getElementById('poly-iran-body');
-  const API  = 'https://gamma-api.polymarket.com/markets?search=iran&active=true&limit=30&order=volumeNum&ascending=false';
 
-  let markets = [];
+/* Fetch from Gamma API — direct first, proxy fallback */
+async function polyFetch(url) {
   try {
-    /* Polymarket's Gamma API sets CORS headers — try direct first */
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 7000);
-    const res  = await fetch(API, { signal: ctrl.signal });
+    const res  = await fetch(url, { signal: ctrl.signal });
     clearTimeout(tid);
-    if (res.ok) markets = await res.json();
-  } catch(_) {
-    try { markets = JSON.parse(await proxyFetch(API)); } catch(e) {
-      console.error('Polymarket:', e);
-      body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct pct-lo">ERR</span><span class="mi-mk-q"><div class="mi-mk-title">POLYMARKET UPLINK FAILURE</div></span></div>`;
-      tag.textContent = 'UPLINK ERROR';
-      return;
-    }
-  }
+    if (res.ok) { const d = await res.json(); if (Array.isArray(d)) return d; }
+  } catch(_) {}
+  try   { return JSON.parse(await proxyFetch(url)); }
+  catch { return []; }
+}
 
-  if (!Array.isArray(markets) || !markets.length) {
-    body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct">--</span><span class="mi-mk-q"><div class="mi-mk-title">NO ACTIVE IRAN CONTRACTS FOUND</div></span></div>`;
-    tag.textContent = 'NO DATA';
-    return;
-  }
-
-  /* keep only Iran-related; fall back to full list if filter yields < 2 */
-  const IRAN = /iran/i;
-  const filtered = markets.filter(m => IRAN.test(m.question || '') || IRAN.test(m.description || ''));
-  const show = (filtered.length >= 2 ? filtered : markets).slice(0, 20);
-
-  body.innerHTML = show.map((m, i) => {
-    /* YES probability */
+/* Render a list of markets as HTML rows, numbered from `offset` */
+function renderMarkets(markets, offset = 0) {
+  return markets.map((m, i) => {
     let yesPct = '--', pctClass = '';
     try {
       const prices = typeof m.outcomePrices === 'string' ? JSON.parse(m.outcomePrices) : (m.outcomePrices || []);
@@ -1574,20 +1567,14 @@ async function loadPolyIran() {
       }
     } catch(_) {}
 
-    /* volume */
-    const vol = parseFloat(m.volumeNum || m.volume || 0);
-    const volStr = vol >= 1e6 ? '$' + (vol/1e6).toFixed(1) + 'M'
-                 : vol >= 1e3 ? '$' + (vol/1e3).toFixed(0) + 'K'
-                 : '$' + Math.round(vol);
-
-    /* days until close */
-    const end = m.endDate ? new Date(m.endDate) : null;
-    const days = end ? Math.ceil((end - Date.now()) / 86400000) : null;
-    const expStr = days === null ? '--' : days > 0 ? days + 'D' : 'EXPD';
-
-    const href = m.slug ? 'https://polymarket.com/event/' + m.slug : '#';
-    const q    = (m.question || '').toUpperCase().replace(/ - [^-]{0,40}$/, '').trim();
-    const num  = String(i + 1).padStart(2, '0');
+    const vol    = parseFloat(m.volumeNum || m.volume || 0);
+    const volStr = vol >= 1e6 ? '$'+(vol/1e6).toFixed(1)+'M' : vol >= 1e3 ? '$'+(vol/1e3).toFixed(0)+'K' : '$'+Math.round(vol);
+    const end    = m.endDate ? new Date(m.endDate) : null;
+    const days   = end ? Math.ceil((end - Date.now()) / 86400000) : null;
+    const expStr = days === null ? '--' : days > 0 ? days+'D' : 'EXPD';
+    const href   = m.slug ? 'https://polymarket.com/event/'+m.slug : '#';
+    const q      = (m.question || '').toUpperCase().replace(/ - [^-]{0,40}$/, '').trim();
+    const num    = String(offset + i + 1).padStart(2, '0');
 
     return `<a class="mi-mkt" href="${href}" target="_blank" rel="noopener">
       <span class="mi-mk-num">${num}</span>
@@ -1598,8 +1585,44 @@ async function loadPolyIran() {
       </span>
     </a>`;
   }).join('');
+}
 
-  tag.textContent = `${show.length} CONTRACTS — ${tFmt('UTC').slice(0,5)} UTC`;
+async function loadPolyIran() {
+  const tag  = document.getElementById('poly-iran-tag');
+  const body = document.getElementById('poly-iran-body');
+
+  tag.textContent = 'FETCHING...';
+
+  const BASE = 'https://gamma-api.polymarket.com/markets?active=true&limit=20&order=volumeNum&ascending=false';
+  const [iranRaw, politicsRaw] = await Promise.all([
+    polyFetch(BASE + '&search=iran'),
+    polyFetch(BASE + '&tag_slugs=politics'),
+  ]);
+
+  /* Filter Iran results to confirmed Iran-related */
+  const IRAN_RE = /iran/i;
+  const iranMkts = iranRaw.filter(m => IRAN_RE.test(m.question||'') || IRAN_RE.test(m.description||'')).slice(0, 12);
+
+  /* Deduplicate politics list against Iran list */
+  const iranIds  = new Set(iranMkts.map(m => m.id || m.slug));
+  const polMkts  = politicsRaw.filter(m => !iranIds.has(m.id||m.slug)).slice(0, 12);
+
+  if (!iranMkts.length && !polMkts.length) {
+    body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct">--</span><span class="mi-mk-q"><div class="mi-mk-title">POLYMARKET UPLINK FAILURE</div></span></div>`;
+    tag.textContent = 'UPLINK ERROR';
+    return;
+  }
+
+  const iranHtml = iranMkts.length
+    ? `<div class="mi-sec-hd">// IRAN CONTRACTS //</div>` + renderMarkets(iranMkts, 0)
+    : `<div class="mi-sec-hd">// IRAN CONTRACTS //</div><div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-q"><div class="mi-mk-title">NO ACTIVE IRAN CONTRACTS</div></span></div>`;
+
+  const polHtml = polMkts.length
+    ? `<div class="mi-sec-hd">// US POLITICS //</div>` + renderMarkets(polMkts, iranMkts.length)
+    : '';
+
+  body.innerHTML = iranHtml + polHtml;
+  tag.textContent = `${iranMkts.length} IRAN · ${polMkts.length} POL — ${tFmt('UTC').slice(0,5)} UTC`;
 }
 
 /* Iran module refresh countdown (Polymarket = 5 min, news = shared 30 min) */
