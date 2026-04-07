@@ -412,9 +412,9 @@
        CSS prefix: .mi-
        ============================================================ */
     #module-iran .mi-row  { display:flex; flex:1; gap:8px; min-height:0; }
-    #module-iran .mi-left { flex:0 0 42%; display:flex; flex-direction:column; min-height:0; }
+    #module-iran .mi-left { flex:0 0 42%; min-width:0; overflow:hidden; display:flex; flex-direction:column; min-height:0; }
     #module-iran .mi-right {
-      flex:1; border:3px solid var(--a);
+      flex:1; min-width:0; border:3px solid var(--a);
       display:flex; flex-direction:column; min-height:0;
     }
     #module-iran .mi-poly-hd {
@@ -786,7 +786,7 @@
         <!-- ── RIGHT: Polymarket contracts ── -->
         <div class="mi-right">
           <div class="mi-poly-hd">
-            <span>// POLYMARKET :: IRAN CONTRACTS //</span>
+            <span>// POLYMARKET :: MARKET INTELLIGENCE //</span>
             <span class="feed-tag" id="poly-iran-tag">ACQUIRING...</span>
           </div>
           <div class="mi-poly-body" id="poly-iran-body">
@@ -1214,17 +1214,7 @@ async function loadWeatherNews() {
         module's HTML with matching bodyId and tagId
    ════════════════════════════════════════════════════════ */
 const FEEDS = {
-  /* IRAN — multiple sources with keyword fallback filtering */
-  iran_news: {
-    sources:[
-      { url:'https://news.google.com/rss/search?q=Iran+military+OR+Iran+nuclear+OR+Iran+attack+OR+Iran+war+OR+Iran+IRGC+OR+Iran+sanctions+OR+Iran+missile&hl=en-US&gl=US&ceid=US:en', filter:null,   name:'GOOGLE NEWS' },
-      { url:'https://feeds.bbci.co.uk/news/world/rss.xml',                                                                                                                                filter:'iran', name:'BBC WORLD'   },
-      { url:'https://www.aljazeera.com/xml/rss/all.xml',                                                                                                                                   filter:'iran', name:'AL JAZEERA'  },
-      { url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',                                                                                                                      filter:'iran', name:'NY TIMES'    },
-      { url:'https://feeds.npr.org/1004/rss.xml',                                                                                                                                          filter:'iran', name:'NPR'         },
-    ],
-    bodyId:'iran-news-body', tagId:'iran-news-tag',
-  },
+  /* iran_news handled by custom loadIranNews() — not the generic loadFeed() */
   /* SITREP */
   uap: {
     sources:[{url:'https://news.google.com/rss/search?q=UAP+OR+UFO+OR+"unidentified+aerial"+OR+"unidentified+anomalous+phenomena"&hl=en-US&gl=US&ceid=US:en',filter:null,name:'GOOGLE NEWS'}],
@@ -1536,12 +1526,97 @@ function stopCaniacWave() {
 }
 
 /* ════════════════════════════════════════════════════════
-   IRAN MODULE — Polymarket contracts + refresh countdown
-   Fetches Iran markets + US Politics markets in parallel,
-   renders as two labelled sections in the right panel.
+   IRAN MODULE
+   ─────────────────────────────────────────────────────
+   loadIranNews()  — parallel multi-source fetch, dedupe,
+                     sort newest-first, show source per item
+   loadPolyIran()  — geopolitics + US politics Polymarket
+                     sections, filters near-resolved markets
    ════════════════════════════════════════════════════════ */
 
-/* Fetch from Gamma API — direct first, proxy fallback */
+/* ── News: fetch all sources in parallel, combine + dedupe ── */
+async function loadIranNews() {
+  const tag  = document.getElementById('iran-news-tag');
+  const body = document.getElementById('iran-news-body');
+
+  const SOURCES = [
+    /* Targeted Google News searches — most up-to-date */
+    { url:'https://news.google.com/rss/search?q=Iran+war+OR+Iran+attack+OR+Iran+nuclear+OR+Iran+IRGC+OR+Iran+US+relations&hl=en-US&gl=US&ceid=US:en', name:'GNEWS', filter:null },
+    { url:'https://news.google.com/rss/search?q=Iran+Israel+OR+Khamenei+OR+Tehran+OR+Iran+sanctions+OR+Iran+missile&hl=en-US&gl=US&ceid=US:en',      name:'GNEWS', filter:null },
+    /* Direct RSS feeds — BBC Middle East needs no filter, others filtered */
+    { url:'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', name:'BBC ME',  filter:null   },
+    { url:'https://www.aljazeera.com/xml/rss/all.xml',               name:'AJ',      filter:'iran' },
+    { url:'https://feeds.bbci.co.uk/news/world/rss.xml',             name:'BBC',     filter:'iran' },
+    { url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',  name:'NYT',     filter:'iran' },
+  ];
+
+  /* Fetch all in parallel; collect fulfilled results only */
+  const settled = await Promise.allSettled(
+    SOURCES.map(s =>
+      proxyFetch(s.url).then(text => ({ text, name: s.name, filter: s.filter }))
+    )
+  );
+
+  const allItems = [];
+  const seenNorm = new Set();
+
+  for (const r of settled) {
+    if (r.status !== 'fulfilled') continue;
+    const { text, name, filter } = r.value;
+    try {
+      const xml   = new DOMParser().parseFromString(text, 'text/xml');
+      let items   = [...xml.querySelectorAll('item')];
+      if (filter) {
+        const kw = filter.toLowerCase();
+        items = items.filter(it =>
+          (it.querySelector('title')?.textContent||'').toLowerCase().includes(kw) ||
+          (it.querySelector('description')?.textContent||'').toLowerCase().includes(kw)
+        );
+      }
+      for (const item of items) {
+        const rawTitle = item.querySelector('title')?.textContent || '';
+        const title    = cleanTitle(rawTitle);
+        /* dedup: normalise to first 45 alphanum chars */
+        const norm = title.replace(/[^A-Z0-9]/g,'').slice(0,45);
+        if (norm.length < 8 || seenNorm.has(norm)) continue;
+        seenNorm.add(norm);
+        const pub = new Date(item.querySelector('pubDate')?.textContent || 0);
+        allItems.push({ item, name, title, pub });
+      }
+    } catch(_) {}
+  }
+
+  /* Sort newest first */
+  allItems.sort((a,b) => b.pub - a.pub);
+  const show = allItems.slice(0, 18);
+  const now  = Date.now();
+
+  if (!show.length) {
+    body.innerHTML = `<a class="fi"><span class="fi-n">--</span><span class="fi-x">ALL SOURCES UNAVAILABLE<span class="blink">_</span></span></a>`;
+    tag.textContent = 'UPLINK ERROR';
+    return;
+  }
+
+  body.innerHTML = show.map(({ item, name, title, pub }, i) => {
+    const age   = ageStr(now - pub.getTime());
+    const href  = linkOf(item);
+    const isNew = (now - pub.getTime()) < 60*60*1000;
+    const num   = String(i+1).padStart(2,'0');
+    return `<a class="fi" href="${href}" target="_blank" rel="noopener">
+      <span class="fi-n">${num}</span>
+      <span class="fi-a">${age}</span>
+      <span class="fi-s">${name.slice(0,6)}</span>
+      ${isNew?'<span class="fi-b">NEW</span>':''}
+      <span class="fi-x">${title}</span>
+    </a>`;
+  }).join('');
+
+  tag.textContent = `${show.length} STORIES — ${tFmt('UTC').slice(0,5)} UTC`;
+}
+
+/* ── Polymarket helpers ── */
+
+/* Fetch Gamma API — direct first, proxy fallback */
 async function polyFetch(url) {
   try {
     const ctrl = new AbortController();
@@ -1554,31 +1629,35 @@ async function polyFetch(url) {
   catch { return []; }
 }
 
-/* Render a list of markets as HTML rows, numbered from `offset` */
+/* Parse YES probability; returns NaN if unavailable */
+function yesProbability(m) {
+  try {
+    const prices = typeof m.outcomePrices === 'string'
+      ? JSON.parse(m.outcomePrices) : (m.outcomePrices || []);
+    if (prices.length >= 1) return Math.round(parseFloat(prices[0]) * 100);
+  } catch(_) {}
+  return NaN;
+}
+
+/* Render market rows, numbered from `offset` */
 function renderMarkets(markets, offset = 0) {
   return markets.map((m, i) => {
-    let yesPct = '--', pctClass = '';
-    try {
-      const prices = typeof m.outcomePrices === 'string' ? JSON.parse(m.outcomePrices) : (m.outcomePrices || []);
-      if (prices.length >= 1) {
-        const p = Math.round(parseFloat(prices[0]) * 100);
-        yesPct = p + '%';
-        pctClass = p >= 65 ? 'pct-hi' : p >= 35 ? 'pct-mid' : 'pct-lo';
-      }
-    } catch(_) {}
-
+    const p      = yesProbability(m);
+    const yesPct = isNaN(p) ? '--' : p + '%';
+    const pctCls = isNaN(p) ? '' : p >= 65 ? 'pct-hi' : p >= 35 ? 'pct-mid' : 'pct-lo';
     const vol    = parseFloat(m.volumeNum || m.volume || 0);
-    const volStr = vol >= 1e6 ? '$'+(vol/1e6).toFixed(1)+'M' : vol >= 1e3 ? '$'+(vol/1e3).toFixed(0)+'K' : '$'+Math.round(vol);
+    const volStr = vol >= 1e6 ? '$'+(vol/1e6).toFixed(1)+'M'
+                 : vol >= 1e3 ? '$'+(vol/1e3).toFixed(0)+'K'
+                 : '$'+Math.round(vol);
     const end    = m.endDate ? new Date(m.endDate) : null;
     const days   = end ? Math.ceil((end - Date.now()) / 86400000) : null;
     const expStr = days === null ? '--' : days > 0 ? days+'D' : 'EXPD';
     const href   = m.slug ? 'https://polymarket.com/event/'+m.slug : '#';
-    const q      = (m.question || '').toUpperCase().replace(/ - [^-]{0,40}$/, '').trim();
-    const num    = String(offset + i + 1).padStart(2, '0');
-
+    const q      = (m.question||'').toUpperCase().replace(/ - [^-]{0,40}$/,'').trim();
+    const num    = String(offset + i + 1).padStart(2,'0');
     return `<a class="mi-mkt" href="${href}" target="_blank" rel="noopener">
       <span class="mi-mk-num">${num}</span>
-      <span class="mi-mk-pct ${pctClass}">${yesPct}</span>
+      <span class="mi-mk-pct ${pctCls}">${yesPct}</span>
       <span class="mi-mk-q">
         <div class="mi-mk-title">${q}</div>
         <div class="mi-mk-meta"><span class="mi-mk-vol">VOL ${volStr}</span>&nbsp;·&nbsp;CLOSES ${expStr}</div>
@@ -1590,39 +1669,58 @@ function renderMarkets(markets, offset = 0) {
 async function loadPolyIran() {
   const tag  = document.getElementById('poly-iran-tag');
   const body = document.getElementById('poly-iran-body');
-
   tag.textContent = 'FETCHING...';
 
-  const BASE = 'https://gamma-api.polymarket.com/markets?active=true&limit=20&order=volumeNum&ascending=false';
-  const [iranRaw, politicsRaw] = await Promise.all([
-    polyFetch(BASE + '&search=iran'),
+  const BASE = 'https://gamma-api.polymarket.com/markets?active=true&limit=25&order=volumeNum&ascending=false';
+
+  /* Fetch geopolitics (Iran + Middle East) and US Politics in parallel */
+  const [geoRaw, polTagRaw, polSrchRaw] = await Promise.all([
+    polyFetch(BASE + '&search=iran+OR+israel+OR+%22middle+east%22+OR+%22nuclear+deal%22'),
     polyFetch(BASE + '&tag_slugs=politics'),
+    polyFetch(BASE + '&search=trump+OR+congress+OR+senate+OR+election+OR+tariff+OR+DOGE'),
   ]);
 
-  /* Filter Iran results to confirmed Iran-related */
-  const IRAN_RE = /iran/i;
-  const iranMkts = iranRaw.filter(m => IRAN_RE.test(m.question||'') || IRAN_RE.test(m.description||'')).slice(0, 12);
+  /* Helper: filter out near-resolved markets (>97% or <3%) unless very high volume */
+  function isInteresting(m) {
+    const p   = yesProbability(m);
+    const vol = parseFloat(m.volumeNum || m.volume || 0);
+    if (isNaN(p)) return false;
+    if (p <= 3 || p >= 97) return vol >= 500000;  /* keep if big-money even if near-decided */
+    return true;
+  }
 
-  /* Deduplicate politics list against Iran list */
-  const iranIds  = new Set(iranMkts.map(m => m.id || m.slug));
-  const polMkts  = politicsRaw.filter(m => !iranIds.has(m.id||m.slug)).slice(0, 12);
+  /* Geopolitics section: Iran/Middle East — confirmed keyword match + interesting prob */
+  const GEO_RE   = /iran|israel|middle.east|nuclear.deal|khamenei|irgc|tehran/i;
+  const geoMkts  = geoRaw
+    .filter(m => GEO_RE.test(m.question||'') && isInteresting(m))
+    .slice(0, 10);
 
-  if (!iranMkts.length && !polMkts.length) {
-    body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct">--</span><span class="mi-mk-q"><div class="mi-mk-title">POLYMARKET UPLINK FAILURE</div></span></div>`;
+  /* US Politics section: merge tag + search results, dedupe, interesting only */
+  const seenIds  = new Set([...geoMkts.map(m => m.id||m.slug)]);
+  const polMerged = [...polTagRaw, ...polSrchRaw].filter((m, idx, arr) => {
+    const key = m.id || m.slug;
+    if (seenIds.has(key)) return false;
+    seenIds.add(key);
+    return isInteresting(m);
+  });
+  const polMkts = polMerged.slice(0, 12);
+
+  if (!geoMkts.length && !polMkts.length) {
+    body.innerHTML = `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-pct pct-lo">ERR</span><span class="mi-mk-q"><div class="mi-mk-title">POLYMARKET UPLINK FAILURE</div></span></div>`;
     tag.textContent = 'UPLINK ERROR';
     return;
   }
 
-  const iranHtml = iranMkts.length
-    ? `<div class="mi-sec-hd">// IRAN CONTRACTS //</div>` + renderMarkets(iranMkts, 0)
-    : `<div class="mi-sec-hd">// IRAN CONTRACTS //</div><div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-q"><div class="mi-mk-title">NO ACTIVE IRAN CONTRACTS</div></span></div>`;
+  const geoHtml = `<div class="mi-sec-hd">// GEOPOLITICS — IRAN / MIDDLE EAST //</div>`
+    + (geoMkts.length ? renderMarkets(geoMkts, 0)
+    : `<div class="mi-mkt"><span class="mi-mk-num">--</span><span class="mi-mk-q"><div class="mi-mk-title">NO ACTIVE CONTRACTS</div></span></div>`);
 
   const polHtml = polMkts.length
-    ? `<div class="mi-sec-hd">// US POLITICS //</div>` + renderMarkets(polMkts, iranMkts.length)
+    ? `<div class="mi-sec-hd">// US POLITICS //</div>` + renderMarkets(polMkts, geoMkts.length)
     : '';
 
-  body.innerHTML = iranHtml + polHtml;
-  tag.textContent = `${iranMkts.length} IRAN · ${polMkts.length} POL — ${tFmt('UTC').slice(0,5)} UTC`;
+  body.innerHTML = geoHtml + polHtml;
+  tag.textContent = `${geoMkts.length} GEO · ${polMkts.length} POL — ${tFmt('UTC').slice(0,5)} UTC`;
 }
 
 /* Iran module refresh countdown (Polymarket = 5 min, news = shared 30 min) */
@@ -1647,7 +1745,7 @@ async function boot(){
     lines[i].style.opacity='1';
   }
   lines[lines.length-1].style.opacity='1';
-  loadWeather(); loadWeatherNews(); loadAllFeeds(); loadPolyIran();
+  loadWeather(); loadWeatherNews(); loadAllFeeds(); loadIranNews(); loadPolyIran();
   await new Promise(r=>setTimeout(r,900));
   document.getElementById('boot').style.display ='none';
   document.getElementById('shell').style.display='flex';
@@ -1659,6 +1757,7 @@ async function boot(){
   setInterval(iranCountTick,  1000);
   setInterval(loadWeather,    10*60*1000);
   setInterval(loadWeatherNews,30*60*1000);
+  setInterval(loadIranNews,   15*60*1000);   /* Iran news every 15 min */
 }
 boot();
 </script>
