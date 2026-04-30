@@ -61,7 +61,7 @@ Subscribe">
 <body
     class="dark text-light"
 >
-  <video id="bg-video" autoplay muted loop playsinline>
+  <video id="bg-video" autoplay muted playsinline>
     <source src="/video/s_labs_amber.mp4" type="video/mp4">
   </video>
   <div class="video-overlay"></div>
@@ -112,7 +112,7 @@ Subscribe">
     </ol>
   </nav>
 
-            <video id="banner-video" autoplay muted loop playsinline>
+            <video id="banner-video" autoplay muted playsinline>
               <source src="/video/s_labs_amber.mp4" type="video/mp4">
             </video>
             <h1 class="display-3 text-uppercase lh-sm">Somnolent Labs</h1>
@@ -185,5 +185,35 @@ Subscribe">
 
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script>
+    function pingPong(video) {
+      let reversing = false;
+      let lastTs = null;
+
+      video.addEventListener('ended', () => {
+        reversing = true;
+        lastTs = null;
+        requestAnimationFrame(stepBack);
+      });
+
+      function stepBack(ts) {
+        if (lastTs === null) lastTs = ts;
+        const delta = (ts - lastTs) / 1000;
+        lastTs = ts;
+        video.currentTime = Math.max(0, video.currentTime - delta);
+        if (video.currentTime <= 0) {
+          reversing = false;
+          video.play();
+        } else {
+          requestAnimationFrame(stepBack);
+        }
+      }
+    }
+
+    ['bg-video', 'banner-video'].forEach(id => {
+      const v = document.getElementById(id);
+      if (v) pingPong(v);
+    });
+  </script>
 </body>
 </html>
