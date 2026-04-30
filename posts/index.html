@@ -48,7 +48,7 @@
   }
 
   function renderPosts(posts) {
-    const sorted = posts.slice().sort((a, b) => b.date.localeCompare(a.date));
+    const sorted = posts.slice().sort((a, b) => b.date.localeCompare(a.date) || b.url.localeCompare(a.url));
     document.getElementById('posts-list').innerHTML = sorted.map(p => `
       <div class="row mb-3">
         <time datetime="${p.date}">${formatDate(p.date)}</time>
