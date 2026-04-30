@@ -61,11 +61,8 @@ Subscribe">
 <body
     class="dark text-light"
 >
-  <video id="bg-video" autoplay muted playsinline>
+  <video id="bg-video" autoplay muted loop playsinline>
     <source src="/video/s_labs_amber.mp4" type="video/mp4">
-  </video>
-  <video id="bg-video-rev" muted playsinline style="position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-2;opacity:0.38;display:none;">
-    <source src="/video/s_labs_amber_rev.mp4" type="video/mp4">
   </video>
   <div class="video-overlay"></div>
 
@@ -115,11 +112,8 @@ Subscribe">
     </ol>
   </nav>
 
-            <video id="banner-video" autoplay muted playsinline>
+            <video id="banner-video" autoplay muted loop playsinline>
               <source src="/video/s_labs_amber.mp4" type="video/mp4">
-            </video>
-            <video id="banner-video-rev" muted playsinline style="display:none;width:100%;height:auto;border-radius:6px;margin-bottom:1.5rem;">
-              <source src="/video/s_labs_amber_rev.mp4" type="video/mp4">
             </video>
             <h1 class="display-3 text-uppercase lh-sm">Somnolent Labs</h1>
             
@@ -191,29 +185,5 @@ Subscribe">
 
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  <script>
-    function pingPong(fwdId, revId) {
-      const fwd = document.getElementById(fwdId);
-      const rev = document.getElementById(revId);
-      if (!fwd || !rev) return;
-
-      fwd.addEventListener('ended', () => {
-        fwd.style.display = 'none';
-        rev.style.display = 'block';
-        rev.currentTime = 0;
-        rev.play();
-      });
-
-      rev.addEventListener('ended', () => {
-        rev.style.display = 'none';
-        fwd.style.display = 'block';
-        fwd.currentTime = 0;
-        fwd.play();
-      });
-    }
-
-    pingPong('bg-video', 'bg-video-rev');
-    pingPong('banner-video', 'banner-video-rev');
-  </script>
 </body>
 </html>
