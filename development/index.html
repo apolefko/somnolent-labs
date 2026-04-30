@@ -33,19 +33,13 @@
     </div>
 
     <h2 class="text-uppercase mb-4">Development</h2>
-    <div id="items-list"></div>
+    <div id="items-list"><p class="text-muted">Loading…</p></div>
   </div>
 </main>
 
 <script>
-  const legacy = [
-    {
-      title: "Dbl Check",
-      content: "Chrome extension — helps family critically think about what's a good site or post.\n\n[Chrome Web Store](https://chromewebstore.google.com/detail/dbl-check/labkdeadaiekmeajaiknljnjpockolfj)"
-    }
-  ];
-
   function renderItems(items) {
+    if (!items.length) return;
     document.getElementById('items-list').innerHTML = items.map(item => `
       <div class="mb-5">
         <h4 class="text-uppercase">${item.title}</h4>
@@ -53,8 +47,6 @@
       </div>
     `).join('');
   }
-
-  renderItems(legacy);
 
   fetch('https://api.github.com/repos/apolefko/somnolent-labs/contents/development/md')
     .then(r => r.ok ? r.json() : [])
@@ -77,9 +69,7 @@
         )
       );
     })
-    .then(mdItems => {
-      if (mdItems && mdItems.length) renderItems([...legacy, ...mdItems]);
-    })
+    .then(mdItems => { if (mdItems) renderItems(mdItems); })
     .catch(() => {});
 </script>
 
