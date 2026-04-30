@@ -43,12 +43,12 @@
   ];
 
   function formatDate(str) {
-    const d = new Date(str + 'T00:00:00');
+    const d = new Date(str.includes('T') ? str : str + 'T00:00:00');
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   function renderPosts(posts) {
-    const sorted = posts.slice().sort((a, b) => b.date.localeCompare(a.date) || b.url.localeCompare(a.url));
+    const sorted = posts.slice().sort((a, b) => (b.sortDate || b.date).localeCompare(a.sortDate || a.date));
     document.getElementById('posts-list').innerHTML = sorted.map(p => `
       <div class="row mb-3">
         <time datetime="${p.date}">${formatDate(p.date)}</time>
@@ -65,22 +65,27 @@
       if (!Array.isArray(files)) return;
       const mdFiles = files.filter(f => f.name.endsWith('.md'));
       return Promise.all(mdFiles.map(f =>
-        fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/md/${f.name}`)
-          .then(r => r.text())
-          .then(text => {
-            const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
-            const meta = {};
-            if (m) m[1].split('\n').forEach(line => {
-              const idx = line.indexOf(':');
-              if (idx > -1) meta[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
-            });
-            const slug = f.name.replace('.md', '');
-            return {
-              title: meta.title || slug.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/-/g, ' '),
-              date: meta.date || slug.slice(0, 10),
-              url: `/posts/post.html?slug=${slug}`,
-            };
-          })
+        Promise.all([
+          fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/md/${f.name}`)
+            .then(r => r.text()),
+          fetch(`https://api.github.com/repos/apolefko/somnolent-labs/commits?path=md/${f.name}&per_page=1`)
+            .then(r => r.ok ? r.json() : [])
+        ]).then(([text, commits]) => {
+          const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+          const meta = {};
+          if (m) m[1].split('\n').forEach(line => {
+            const idx = line.indexOf(':');
+            if (idx > -1) meta[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+          });
+          const slug = f.name.replace('.md', '');
+          const commitDate = commits.length ? commits[0].commit.author.date : null;
+          return {
+            title: meta.title || slug.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/-/g, ' '),
+            date: meta.date || slug.slice(0, 10),
+            sortDate: commitDate,
+            url: `/posts/post.html?slug=${slug}`,
+          };
+        })
       ));
     })
     .then(mdPosts => {

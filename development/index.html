@@ -38,10 +38,17 @@
 </main>
 
 <script>
+  function formatDate(str) {
+    const d = new Date(str.includes('T') ? str : str + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
   function renderItems(items) {
     if (!items.length) return;
-    document.getElementById('items-list').innerHTML = items.map(item => `
+    const sorted = items.slice().sort((a, b) => (b.sortDate || b.date || '').localeCompare(a.sortDate || a.date || ''));
+    document.getElementById('items-list').innerHTML = sorted.map(item => `
       <div class="mb-5">
+        ${item.date ? `<time datetime="${item.date}" class="text-muted small">${formatDate(item.date)}</time>` : ''}
         <h4 class="text-uppercase">${item.title}</h4>
         <div>${marked.parse(item.content)}</div>
       </div>
@@ -54,18 +61,22 @@
       if (!Array.isArray(files)) return;
       return Promise.all(
         files.filter(f => f.name.endsWith('.md')).map(f =>
-          fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/development/md/${f.name}`)
-            .then(r => r.text())
-            .then(text => {
-              const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-              if (!m) return { title: f.name.replace('.md',''), content: text };
-              const meta = {};
-              m[1].split('\n').forEach(line => {
-                const idx = line.indexOf(':');
-                if (idx > -1) meta[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
-              });
-              return { title: meta.title || f.name.replace('.md',''), content: m[2] };
-            })
+          Promise.all([
+            fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/development/md/${f.name}`)
+              .then(r => r.text()),
+            fetch(`https://api.github.com/repos/apolefko/somnolent-labs/commits?path=development/md/${f.name}&per_page=1`)
+              .then(r => r.ok ? r.json() : [])
+          ]).then(([text, commits]) => {
+            const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+            if (!m) return { title: f.name.replace('.md',''), content: text, date: null, sortDate: null };
+            const meta = {};
+            m[1].split('\n').forEach(line => {
+              const idx = line.indexOf(':');
+              if (idx > -1) meta[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
+            });
+            const commitDate = commits.length ? commits[0].commit.author.date : null;
+            return { title: meta.title || f.name.replace('.md',''), date: meta.date || null, sortDate: commitDate, content: m[2] };
+          })
         )
       );
     })

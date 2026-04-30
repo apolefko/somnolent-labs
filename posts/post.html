@@ -54,7 +54,7 @@
   }
 
   function formatDate(str) {
-    const d = new Date(str + 'T00:00:00');
+    const d = new Date(str.includes('T') ? str : str + 'T00:00:00');
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
