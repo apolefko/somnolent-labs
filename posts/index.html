@@ -1,113 +1,94 @@
 <!DOCTYPE html>
 <html lang="en-us" dir="ltr">
 <head>
-  
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/png" href="https://somnolentlabs.com/favicon.ico" />
 <meta property="og:url" content="https://somnolentlabs.com/posts/">
-  <meta property="og:site_name" content="Somnolent Labs">
-  <meta property="og:title" content="Posts">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="website">
-
+<meta property="og:site_name" content="Somnolent Labs">
+<meta property="og:title" content="Posts">
+<meta property="og:locale" content="en_us">
+<meta property="og:type" content="website">
 <title>Somnolent Labs | Posts</title>
-
-      <link rel="stylesheet" href="/css/main.min.4524882f5d1196622ca104ab1aad53fdc14a51b37d18dd767cbe40cde6310feb.css" integrity="sha256-RSSIL10RlmIsoQSrGq1T/cFKUbN9GN12fL5AzeYxD&#43;s=" crossorigin="anonymous">
-  
-        <link rel="stylesheet" href="/css/palette/catpuccin.min.e2839e7c321b1899e8f752c4744a0d53a16a68d46c4cbccc7f4e41f6ef6d2667.css" integrity="sha256-4oOefDIbGJno91LEdEoNU6FqaNRsTLzMf05B9u9tJmc=" crossorigin="anonymous">
-
-      <script src="/js/main.86bb3d8e6f46df0fc97c2731e6b99175a13b87a4086acf578ff9b6992fcf32c1.js" integrity="sha256-hrs9jm9G3w/JfCcx5rmRdaE7h6QIas9Xj/m2mS/PMsE=" crossorigin="anonymous"></script>
-
+<link rel="stylesheet" href="/css/main.min.4524882f5d1196622ca104ab1aad53fdc14a51b37d18dd767cbe40cde6310feb.css" integrity="sha256-RSSIL10RlmIsoQSrGq1T/cFKUbN9GN12fL5AzeYxD+s=" crossorigin="anonymous">
+<link rel="stylesheet" href="/css/palette/catpuccin.min.e2839e7c321b1899e8f752c4744a0d53a16a68d46c4cbccc7f4e41f6ef6d2667.css" integrity="sha256-4oOefDIbGJno91LEdEoNU6FqaNRsTLzMf05B9u9tJmc=" crossorigin="anonymous">
+<script src="/js/main.86bb3d8e6f46df0fc97c2731e6b99175a13b87a4086acf578ff9b6992fcf32c1.js" integrity="sha256-hrs9jm9G3w/JfCcx5rmRdaE7h6QIas9Xj/m2mS/PMsE=" crossorigin="anonymous"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
 </head>
 
-  
-<body
-    class="dark text-light"
->
-  
-  <main>
-    
+<body class="dark text-light">
+<main>
   <div class="container pt-5">
-    
     <div class="row mt-5 pt-5">
-      
-  <nav aria-label="breadcrumb" class="small">
-    <ol class="breadcrumb fw-bold">
-    <li class="breadcrumb-item">
-      <a href="/"
-        
-      >home</a>
-      
-    </li>
-    <li class="breadcrumb-item">
-      <a href="/development"
-        
-      >development</a>
-      
-    </li>
-    <li class="breadcrumb-item">
-      <a href="/research"
-        
-      >research</a>
-      
-    </li>
-    <li class="breadcrumb-item">
-      <a href="/posts"
-        class="text-decoration-underline link-offset-3"
-        
-      >posts</a>
-      
-    </li>
-    <li class="breadcrumb-item">
-      <a href="https://github.com/apolefko"
-        
-          target="_blank" rel="noopener noreferrer"
-        
-      >github</a>
-      
-    </li>
-    </ol>
-  </nav>
+      <nav aria-label="breadcrumb" class="small">
+        <ol class="breadcrumb fw-bold">
+          <li class="breadcrumb-item"><a href="/">home</a></li>
+          <li class="breadcrumb-item"><a href="/development">development</a></li>
+          <li class="breadcrumb-item"><a href="/research">research</a></li>
+          <li class="breadcrumb-item"><a href="/posts" class="text-decoration-underline link-offset-3">posts</a></li>
+          <li class="breadcrumb-item"><a href="https://github.com/apolefko" target="_blank" rel="noopener noreferrer">github</a></li>
+        </ol>
+      </nav>
+    </div>
 
-    </div>
-    
-    
-    
-    <div class="row mb-3">
-      
-      
-      <time datetime="2025-06-02T00:00:00&#43;00:00">June 2, 2025</time>
-      <h2 class="h5"><a href="/posts/dblcheckrelaunch/">Dbl Check - Relaunch</a></h2>
-      
-    </div>
-    
-    <div class="row mb-3">
-      
-      
-      <time datetime="2025-03-19T00:00:00&#43;00:00">March 19, 2025</time>
-      <h2 class="h5"><a href="/posts/let-us-cook/">Currently working a lot with my buddy Claude</a></h2>
-      
-    </div>
-    
-    <div class="row mb-3">
-      
-      
-      <time datetime="2025-03-08T00:00:00&#43;00:00">March 8, 2025</time>
-      <h2 class="h5"><a href="/posts/first-post/">Welcome To Somnolent Labs</a></h2>
-      
-    </div>
-    
-    
-    
+    <div id="posts-list"></div>
   </div>
+</main>
 
-  </main>
+<script>
+  const legacy = [
+    { title: "Dbl Check - Relaunch", date: "2025-06-02", url: "/posts/dblcheckrelaunch/" },
+    { title: "Currently working a lot with my buddy Claude", date: "2025-03-19", url: "/posts/let-us-cook/" },
+    { title: "Welcome To Somnolent Labs", date: "2025-03-08", url: "/posts/first-post/" },
+  ];
 
-  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  function formatDate(str) {
+    const d = new Date(str + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function renderPosts(posts) {
+    const sorted = posts.slice().sort((a, b) => b.date.localeCompare(a.date));
+    document.getElementById('posts-list').innerHTML = sorted.map(p => `
+      <div class="row mb-3">
+        <time datetime="${p.date}">${formatDate(p.date)}</time>
+        <h2 class="h5"><a href="${p.url}">${p.title}</a></h2>
+      </div>
+    `).join('');
+  }
+
+  renderPosts(legacy);
+
+  fetch('https://api.github.com/repos/apolefko/somnolent-labs/contents/md')
+    .then(r => r.ok ? r.json() : [])
+    .then(files => {
+      if (!Array.isArray(files)) return;
+      const mdFiles = files.filter(f => f.name.endsWith('.md'));
+      return Promise.all(mdFiles.map(f =>
+        fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/md/${f.name}`)
+          .then(r => r.text())
+          .then(text => {
+            const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+            const meta = {};
+            if (m) m[1].split('\n').forEach(line => {
+              const idx = line.indexOf(':');
+              if (idx > -1) meta[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+            });
+            const slug = f.name.replace('.md', '');
+            return {
+              title: meta.title || slug.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/-/g, ' '),
+              date: meta.date || slug.slice(0, 10),
+              url: `/posts/post.html?slug=${slug}`,
+            };
+          })
+      ));
+    })
+    .then(mdPosts => {
+      if (mdPosts && mdPosts.length) renderPosts([...legacy, ...mdPosts]);
+    })
+    .catch(() => {});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
