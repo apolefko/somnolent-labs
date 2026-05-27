@@ -1,0 +1,80 @@
+/* Light-mode overrides. The body keeps class="dark text-light" so dark stays
+   the default; we win via higher specificity when <html data-theme="light">. */
+html[data-theme="light"] body.dark {
+  --bg-color: #f4f0e6;
+  --bg-variant: #e7dfca;
+  --primary: #9a7b34;
+  --primary-variant: #7a5f24;
+  --secondary: #c8a45c;
+  color: #1a1a1a !important;
+}
+html[data-theme="light"] body.dark.text-light {
+  --bs-text-opacity: 1;
+  color: #1a1a1a !important;
+}
+html[data-theme="light"] .text-muted {
+  color: #5a5a5a !important;
+}
+html[data-theme="light"] .breadcrumb-item + .breadcrumb-item::before {
+  color: #5a5a5a !important;
+}
+html[data-theme="light"] .video-overlay {
+  background: rgba(244, 240, 230, 0.55);
+}
+html[data-theme="light"] #bg-video {
+  opacity: 0.18;
+}
+
+/* Theme switcher UI */
+.sl-theme-switcher {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1050;
+  display: inline-flex;
+  font-family: 'Poiret One', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid var(--primary, #c8a45c);
+  border-radius: 2px;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+html[data-theme="light"] .sl-theme-switcher {
+  background: rgba(244, 240, 230, 0.7);
+}
+.sl-theme-switcher button {
+  background: transparent;
+  border: 0;
+  padding: 6px 10px;
+  color: var(--primary, #c8a45c);
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.sl-theme-switcher button:hover {
+  background: rgba(200, 164, 92, 0.18);
+}
+.sl-theme-switcher button.is-active {
+  background: var(--primary, #c8a45c);
+  color: #0a0a0a;
+}
+html[data-theme="light"] .sl-theme-switcher button.is-active {
+  color: #f4f0e6;
+}
+.sl-theme-switcher button + button {
+  border-left: 1px solid rgba(200, 164, 92, 0.4);
+}
+@media (max-width: 480px) {
+  .sl-theme-switcher {
+    font-size: 10px;
+  }
+  .sl-theme-switcher button {
+    padding: 5px 8px;
+  }
+}
