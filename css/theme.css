@@ -27,6 +27,34 @@ html[data-theme="light"] .video-overlay {
 html[data-theme="light"] #bg-video {
   opacity: 0.18;
 }
+/* Fixed background video, shared across content pages. Mirrors the home
+   page's inline copy so development / research / posts get the same backdrop.
+   (Home keeps its own inline copy plus a mobile banner video.) */
+#bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  opacity: 0.38;
+}
+.video-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.52);
+  z-index: -1;
+}
+@media (max-width: 768px) {
+  #bg-video,
+  .video-overlay {
+    display: none;
+  }
+}
 /* Accents used as backgrounds need light text once the palette darkens. */
 html[data-theme="light"] ::selection {
   background: #6b4e18;
