@@ -42,6 +42,17 @@ html[data-theme="light"] .gaming-btn {
   border-color: #6e5113 !important;
   text-shadow: none !important;
 }
+/* The display-heading gradient (e.g. "SOMNOLENT LABS") runs light-gold to
+   gold, which washes out on cream. Use a darker gold->brown gradient in light
+   mode so it keeps its metallic sheen but stays legible (>=4.4:1). */
+html[data-theme="light"] .display-1,
+html[data-theme="light"] .display-2,
+html[data-theme="light"] .display-3,
+html[data-theme="light"] .display-4 {
+  background: linear-gradient(180deg, #8a6a22 0%, #6e5113 45%, #5c4310 75%, #4a350c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 /* Decorative dividers are gold-on-cream and become invisible in light mode. */
 html[data-theme="light"] hr,
 html[data-theme="light"] .deco-rule {
