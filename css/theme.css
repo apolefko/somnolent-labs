@@ -1,11 +1,14 @@
 /* Light-mode overrides. The body keeps class="dark text-light" so dark stays
-   the default; we win via higher specificity when <html data-theme="light">. */
+   the default; we win via higher specificity when <html data-theme="light">.
+   The accent palette is deliberately darker than the dark-mode gold so that
+   text-bearing colors (links, code, heading prefixes) clear WCAG AA (4.5:1)
+   against the cream background instead of washing out. */
 html[data-theme="light"] body.dark {
   --bg-color: #f4f0e6;
   --bg-variant: #e7dfca;
-  --primary: #9a7b34;
-  --primary-variant: #7a5f24;
-  --secondary: #c8a45c;
+  --primary: #5c4310;          /* link hover, ◆ accents, tag hover bg (~6.6:1) */
+  --primary-variant: #6e5113;  /* default link color (~5.7:1) */
+  --secondary: #6b4e18;        /* code, heading prefixes, underline (~6.4:1) */
   color: #1a1a1a !important;
 }
 html[data-theme="light"] body.dark.text-light {
@@ -23,6 +26,31 @@ html[data-theme="light"] .video-overlay {
 }
 html[data-theme="light"] #bg-video {
   opacity: 0.18;
+}
+/* Accents used as backgrounds need light text once the palette darkens. */
+html[data-theme="light"] ::selection {
+  background: #6b4e18;
+  color: #f4f0e6;
+}
+html[data-theme="light"] mark {
+  color: #f4f0e6 !important;
+}
+/* The gaming button on the home page uses pale gold text + a dark text-shadow
+   tuned for the dark background; both vanish on cream. */
+html[data-theme="light"] .gaming-btn {
+  color: #5c4310 !important;
+  border-color: #6e5113 !important;
+  text-shadow: none !important;
+}
+/* Decorative dividers are gold-on-cream and become invisible in light mode. */
+html[data-theme="light"] hr,
+html[data-theme="light"] .deco-rule {
+  background: linear-gradient(90deg, transparent, #8a6a22 18%, #6b4e18 50%, #8a6a22 82%, transparent);
+}
+html[data-theme="light"] hr::after,
+html[data-theme="light"] .deco-rule::after {
+  color: #6b4e18;
+  text-shadow: none;
 }
 
 /* Theme switcher UI */
