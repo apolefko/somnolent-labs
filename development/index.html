@@ -18,12 +18,11 @@
 <script>(function(){try{var s=localStorage.getItem('sl-theme')||'system';var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',(s==='dark'||(s!=='light'&&d))?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="stylesheet" href="/css/theme.css">
 <script src="/js/theme.js" defer></script>
+<script src="/js/site.js" defer></script>
 </head>
 
 <body class="dark text-light">
-<video id="bg-video" autoplay muted loop playsinline>
-  <source src="/video/s_labs_amber.mp4" type="video/mp4">
-</video>
+<video id="bg-video" data-src="/video/s_labs_amber.mp4" data-media="(min-width: 769px)" poster="/video/s_labs_amber_poster.jpg" autoplay muted loop playsinline></video>
 <div class="video-overlay"></div>
 <main>
   <div class="container pt-5">
@@ -45,50 +44,9 @@
 </main>
 
 <script>
-  function formatDate(str) {
-    const d = new Date(str.includes('T') ? str : str + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-
-  function renderItems(items) {
-    if (!items.length) return;
-    const sorted = items.slice().sort((a, b) => (b.sortDate || b.date || '').localeCompare(a.sortDate || a.date || ''));
-    document.getElementById('items-list').innerHTML = sorted.map(item => `
-      <div class="mb-5">
-        ${item.date ? `<time datetime="${item.date}" class="text-muted small">${formatDate(item.date)}</time>` : ''}
-        <h4 class="text-uppercase">${item.title}</h4>
-        <div>${marked.parse(item.content)}</div>
-      </div>
-    `).join('');
-  }
-
-  fetch('https://api.github.com/repos/apolefko/somnolent-labs/contents/development/md')
-    .then(r => r.ok ? r.json() : [])
-    .then(files => {
-      if (!Array.isArray(files)) return;
-      return Promise.all(
-        files.filter(f => f.name.endsWith('.md')).map(f =>
-          Promise.all([
-            fetch(`https://raw.githubusercontent.com/apolefko/somnolent-labs/main/development/md/${f.name}`)
-              .then(r => r.text()),
-            fetch(`https://api.github.com/repos/apolefko/somnolent-labs/commits?path=development/md/${f.name}&per_page=1`)
-              .then(r => r.ok ? r.json() : [])
-          ]).then(([text, commits]) => {
-            const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-            if (!m) return { title: f.name.replace('.md',''), content: text, date: null, sortDate: null };
-            const meta = {};
-            m[1].split('\n').forEach(line => {
-              const idx = line.indexOf(':');
-              if (idx > -1) meta[line.slice(0,idx).trim()] = line.slice(idx+1).trim();
-            });
-            const commitDate = commits.length ? commits[0].commit.author.date : null;
-            return { title: meta.title || f.name.replace('.md',''), date: meta.date || null, sortDate: commitDate, content: m[2] };
-          })
-        )
-      );
-    })
-    .then(mdItems => { if (mdItems) renderItems(mdItems); })
-    .catch(() => {});
+  window.addEventListener('DOMContentLoaded', function () {
+    SL.renderSectionInline('development', 'items-list');
+  });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

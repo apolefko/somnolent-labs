@@ -30,6 +30,7 @@
 <script>(function(){try{var s=localStorage.getItem('sl-theme')||'system';var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',(s==='dark'||(s!=='light'&&d))?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="stylesheet" href="/css/theme.css">
 <script src="/js/theme.js" defer></script>
+<script src="/js/site.js" defer></script>
 
 </head>
 
@@ -37,9 +38,7 @@
 <body
     class="dark text-light"
 >
-  <video id="bg-video" autoplay muted loop playsinline>
-    <source src="/video/s_labs_amber.mp4" type="video/mp4">
-  </video>
+  <video id="bg-video" data-src="/video/s_labs_amber.mp4" data-media="(min-width: 769px)" poster="/video/s_labs_amber_poster.jpg" autoplay muted loop playsinline></video>
   <div class="video-overlay"></div>
 
   <main>

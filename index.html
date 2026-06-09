@@ -10,9 +10,7 @@
 <meta property="og:url" content="https://somnolentlabs.com/">
   <meta property="og:site_name" content="Somnolent Labs">
   <meta property="og:title" content="Somnolent Labs">
-  <meta property="og:description" content="Somnolent Labs conducts research that builds upon established academic frameworks for Artificial Intelligence, while exploring innovations at the bleeding edge. Human-centricity is at the core of everything we do—embracing our variance, flaws, and inherent complexity. On the development side, we create delightful, useful applications that enhance rather than replace the human experience.
-/ˈsɑːm.nə.lənt/ a state of being sleepy, drowsy, or tending to induce sleep
-Subscribe">
+  <meta property="og:description" content="Somnolent Labs conducts research that builds upon established academic frameworks for Artificial Intelligence, while exploring innovations at the bleeding edge. Human-centricity is at the core of everything we do — embracing our variance, flaws, and inherent complexity.">
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="website">
 
@@ -29,35 +27,7 @@ Subscribe">
 <script>(function(){try{var s=localStorage.getItem('sl-theme')||'system';var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',(s==='dark'||(s!=='light'&&d))?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="stylesheet" href="/css/theme.css">
 <script src="/js/theme.js" defer></script>
-
-<style>
-  #bg-video {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: -2;
-    opacity: 0.38;
-  }
-  .video-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.52);
-    z-index: -1;
-  }
-  #banner-video {
-    display: none;
-    width: 100%;
-    height: auto;
-    border-radius: 6px;
-    margin-bottom: 1.5rem;
-  }
-  @media (max-width: 768px) {
-    #bg-video, .video-overlay { display: none; }
-    #banner-video { display: block; }
-  }
-</style>
+<script src="/js/site.js" defer></script>
 
 </head>
 
@@ -65,9 +35,7 @@ Subscribe">
 <body
     class="dark text-light"
 >
-  <video id="bg-video" autoplay muted loop playsinline>
-    <source src="/video/s_labs_amber.mp4" type="video/mp4">
-  </video>
+  <video id="bg-video" data-src="/video/s_labs_amber.mp4" data-media="(min-width: 769px)" poster="/video/s_labs_amber_poster.jpg" autoplay muted loop playsinline></video>
   <div class="video-overlay"></div>
 
   <main>
@@ -101,9 +69,9 @@ Subscribe">
     </li>
     <li class="breadcrumb-item">
       <a href="/posts"
-        
+
       >posts</a>
-      
+
     </li>
     <li class="breadcrumb-item">
       <a href="https://github.com/apolefko"
@@ -116,72 +84,15 @@ Subscribe">
     </ol>
   </nav>
 
-            <video id="banner-video" autoplay muted loop playsinline>
-              <source src="/video/s_labs_amber.mp4" type="video/mp4">
-            </video>
+            <video id="banner-video" data-src="/video/s_labs_amber.mp4" data-media="(max-width: 768px)" poster="/video/s_labs_amber_poster.jpg" autoplay muted loop playsinline></video>
             <h1 class="display-3 text-uppercase lh-sm">Somnolent Labs</h1>
-            
-            <p class="lh-lg">
+
+            <div class="lh-lg">
                 <p>Somnolent Labs conducts research that builds upon established academic frameworks for Artificial Intelligence, while exploring innovations at the bleeding edge. Human-centricity is at the core of everything we do - embracing our variance, flaws, and inherent complexity. On the development side, we create delightful, useful applications that enhance rather than replace the human experience.</p>
 <p>/ˈsɑːm.nə.lənt/ a state of being sleepy, drowsy, or tending to induce sleep</p>
-<style>
-        .subscribe-btn, .gaming-btn {
-            display: inline-block;
-            font-family: 'Poiret One', sans-serif;
-            font-weight: 400;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            padding: 13px 26px;
-            border-radius: 2px;
-            text-decoration: none !important;
-            transition: all 0.25s ease;
-            margin: 0 14px 12px 0;
-        }
-
-        .subscribe-btn {
-            background: linear-gradient(180deg, #f0d99a 0%, #d8b768 55%, #b08c3e 100%);
-            color: #000 !important;
-            border: 1px solid #f0d99a;
-            box-shadow: 0 0 0 1px rgba(200,164,92,0.22), 0 6px 18px rgba(0,0,0,0.45);
-        }
-
-        .subscribe-btn:hover {
-            color: #0a0a0a !important;
-            filter: brightness(1.08);
-            box-shadow: 0 0 0 1px rgba(230,200,120,0.5), 0 8px 22px rgba(200,164,92,0.3);
-            transform: translateY(-2px);
-        }
-
-        .subscribe-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 0 0 1px rgba(200,164,92,0.3), 0 3px 8px rgba(0,0,0,0.4);
-        }
-
-        .gaming-btn {
-            background: rgba(200,164,92,0.06);
-            color: #f3dca0 !important;
-            border: 1px solid rgba(200,164,92,0.6);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.55);
-            box-shadow: inset 0 0 0 1px rgba(200,164,92,0.12);
-        }
-
-        .gaming-btn:hover {
-            background: linear-gradient(180deg, #e6c878 0%, #c8a45c 55%, #9a7b34 100%);
-            color: #0a0a0a !important;
-            border-color: #e6c878;
-            box-shadow: 0 8px 22px rgba(200,164,92,0.28);
-            transform: translateY(-2px);
-        }
-
-        .gaming-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-        }
-</style>
 <p><a href="https://youtube.com/@somnolentlabs" class="subscribe-btn">Subscribe</a><a href="https://youtube.com/@guerrillagamp?si=QkiIMOryHgsD6vS5" class="gaming-btn" target="_blank" rel="noopener noreferrer">Gaming Channel</a></p>
 
-            </p>
+            </div>
         </div>
     </div>
 </div>

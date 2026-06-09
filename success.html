@@ -3,14 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dbl Check - Subscription Success!</title>
+    <title>Dbl Check - Subscription Success! | Somnolent Labs</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
-        .code-box { background-color: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 1.2em; font-weight: bold; word-wrap: break-word; }
-        .loading { font-style: italic; color: #555; }
-        .error { color: red; font-weight: bold; }
-        .instructions { font-size: 0.9em; color: #333; }
+        :root {
+            --bg: #0a0a0a;
+            --text: #e8e2d4;
+            --muted: #9a917d;
+            --gold: #c8a45c;
+            --gold-bright: #f0d99a;
+        }
+        body {
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 48px auto;
+            padding: 32px 28px;
+            border: 1px solid rgba(200, 164, 92, 0.6);
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px rgba(200, 164, 92, 0.15), 0 8px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1, h2 {
+            font-family: 'Poiret One', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold-bright);
+        }
+        h1 { font-size: 24px; }
+        h2 { font-size: 18px; margin-top: 28px; }
+        .code-box {
+            background: rgba(200, 164, 92, 0.08);
+            border: 1px solid rgba(200, 164, 92, 0.4);
+            color: var(--gold-bright);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 2px;
+            font-size: 1.2em;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            word-wrap: break-word;
+        }
+        .loading { font-style: italic; color: var(--muted); }
+        .error { color: #e07a5f; font-weight: 500; }
+        .instructions { font-size: 0.9em; color: var(--muted); }
+        ::selection { background: var(--gold); color: var(--bg); }
     </style>
 </head>
 <body>

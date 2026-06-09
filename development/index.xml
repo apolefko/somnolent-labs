@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Development on Somnolent Labs</title>
+    <title>Somnolent Labs | Development</title>
     <link>https://somnolentlabs.com/development/</link>
-    <description>Recent content in Development on Somnolent Labs</description>
-    <generator>Hugo</generator>
+    <description>Development updates from Somnolent Labs</description>
     <language>en-us</language>
-    <lastBuildDate></lastBuildDate>
+    <lastBuildDate>Tue, 09 Jun 2026 17:58:36 GMT</lastBuildDate>
     <atom:link href="https://somnolentlabs.com/development/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Dbl Check</title>
+      <link>https://somnolentlabs.com/development/</link>
+      <guid isPermaLink="false">https://somnolentlabs.com/development/</guid>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 GMT</pubDate>
+      <description>Chrome extension that helps family critically think about whether a site or post is credible. [Get it on the Chrome Web Store](https://chromewebstore.google.com/detail/dbl-check/labkdeadaiekmeajaiknljnjpockolfj)</description>
+    </item>
+    <item>
+      <title>striking</title>
+      <link>https://somnolentlabs.com/development/</link>
+      <guid isPermaLink="false">https://somnolentlabs.com/development/</guid>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 GMT</pubDate>
+      <description>I'll update this post, but I enjoyed making a kickboxing/striking anaylsis tool with Claude Code as a weekend project.</description>
+    </item>
   </channel>
 </rss>

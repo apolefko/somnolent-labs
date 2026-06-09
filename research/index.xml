@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Research on Somnolent Labs</title>
+    <title>Somnolent Labs | Research</title>
     <link>https://somnolentlabs.com/research/</link>
-    <description>Recent content in Research on Somnolent Labs</description>
-    <generator>Hugo</generator>
+    <description>Research updates from Somnolent Labs</description>
     <language>en-us</language>
-    <lastBuildDate></lastBuildDate>
+    <lastBuildDate>Tue, 09 Jun 2026 17:58:36 GMT</lastBuildDate>
     <atom:link href="https://somnolentlabs.com/research/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Coming Soon</title>
+      <link>https://somnolentlabs.com/research/</link>
+      <guid isPermaLink="false">https://somnolentlabs.com/research/</guid>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 GMT</pubDate>
+      <description>Research initiatives launching soon. Stay tuned.</description>
+    </item>
+    <item>
+      <title>finished my masters</title>
+      <link>https://somnolentlabs.com/research/</link>
+      <guid isPermaLink="false">https://somnolentlabs.com/research/</guid>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 GMT</pubDate>
+      <description>I finished my masters! Just waiting on confirmation (grade uploads) and the diploma itself.</description>
+    </item>
   </channel>
 </rss>
