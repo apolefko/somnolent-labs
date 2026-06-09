@@ -3,55 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Dbl Check</title>
+    <title>Privacy Policy - Dbl Check | Somnolent Labs</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0a0a0a;
+            --text: #e8e2d4;
+            --muted: #9a917d;
+            --gold: #c8a45c;
+            --gold-bright: #f0d99a;
+        }
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 32px 20px 60px;
+        }
+        .site-link {
+            font-family: 'Poiret One', sans-serif;
+            font-size: 13px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold) !important;
+            text-decoration: none !important;
+            display: inline-block;
+            margin-bottom: 36px;
+        }
+        .site-link:hover { color: var(--gold-bright) !important; }
+        h1, h2 {
+            font-family: 'Poiret One', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold-bright);
         }
         h1 {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(200, 164, 92, 0.35);
         }
         h2 {
-            font-size: 20px;
+            font-size: 19px;
             margin-top: 25px;
             margin-bottom: 15px;
         }
-        p {
-            margin-bottom: 15px;
-        }
-        ul {
-            margin-bottom: 20px;
-        }
-        li {
-            margin-bottom: 10px;
-        }
-        section {
-            margin-bottom: 30px;
-        }
+        p { margin-bottom: 15px; }
+        ul { margin-bottom: 20px; padding-left: 22px; }
+        li { margin-bottom: 10px; }
+        section { margin-bottom: 30px; }
         a {
-            color: #0066cc;
+            color: var(--gold);
             text-decoration: underline;
+            text-underline-offset: 3px;
         }
-        a:hover {
-            color: #004499;
-        }
+        a:hover { color: var(--gold-bright); }
         .effective-date {
             font-size: 14px;
-            color: #666;
+            color: var(--muted);
             margin-bottom: 20px;
         }
-        strong {
-            font-weight: bold;
-        }
+        strong { font-weight: 500; color: var(--gold-bright); }
+        code { color: var(--gold); }
+        ::selection { background: var(--gold); color: var(--bg); }
     </style>
 </head>
 <body>
+    <a class="site-link" href="/">&larr; Somnolent Labs</a>
     <h1>Privacy Policy for Dbl Check</h1>
 
     <p class="effective-date">Effective Date: April 13, 2025</p>
