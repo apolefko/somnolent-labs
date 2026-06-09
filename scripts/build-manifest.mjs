@@ -34,7 +34,8 @@ const LEGACY_POSTS = [
   { title: 'Welcome To Somnolent Labs', date: '2025-03-08', url: '/posts/first-post/' },
 ];
 
-const STATIC_PAGES = ['/', '/development/', '/research/', '/posts/', '/dashboards/'];
+// /dashboards/ is deliberately unlisted: reachable by direct link only.
+const STATIC_PAGES = ['/', '/development/', '/research/', '/posts/'];
 
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);

@@ -56,7 +56,8 @@ Two ways to keep a file unpublished while it lives in the repo:
 
 ## Everything else
 
-- `dashboards/` — self-contained retro terminal dashboards, linked from the nav.
+- `dashboards/` — self-contained retro terminal dashboards. Deliberately
+  unlisted: not in the nav or sitemap, and marked `noindex` — direct link only.
 - `posts/first-post/`, `posts/let-us-cook/`, `posts/dblcheckrelaunch/` — legacy
   posts from the old Hugo build, kept as static pages (listed via the manifest).
 - `privacy-policy-dbl-check.html`, `success.html` — pages for the
