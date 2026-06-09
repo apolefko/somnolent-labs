@@ -55,6 +55,69 @@ html[data-theme="light"] #bg-video {
     display: none;
   }
 }
+/* Mobile banner video (home page only): replaces the fixed background. */
+#banner-video {
+  display: none;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) {
+  #banner-video {
+    display: block;
+  }
+}
+
+/* Home page CTA buttons (formerly inline in index.html). */
+.subscribe-btn,
+.gaming-btn {
+  display: inline-block;
+  font-family: 'Poiret One', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 13px 26px;
+  border-radius: 2px;
+  text-decoration: none !important;
+  transition: all 0.25s ease;
+  margin: 0 14px 12px 0;
+}
+.subscribe-btn {
+  background: linear-gradient(180deg, #f0d99a 0%, #d8b768 55%, #b08c3e 100%);
+  color: #000 !important;
+  border: 1px solid #f0d99a;
+  box-shadow: 0 0 0 1px rgba(200, 164, 92, 0.22), 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.subscribe-btn:hover {
+  color: #0a0a0a !important;
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 1px rgba(230, 200, 120, 0.5), 0 8px 22px rgba(200, 164, 92, 0.3);
+  transform: translateY(-2px);
+}
+.subscribe-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 0 0 1px rgba(200, 164, 92, 0.3), 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+.gaming-btn {
+  background: rgba(200, 164, 92, 0.06);
+  color: #f3dca0 !important;
+  border: 1px solid rgba(200, 164, 92, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(200, 164, 92, 0.12);
+}
+.gaming-btn:hover {
+  background: linear-gradient(180deg, #e6c878 0%, #c8a45c 55%, #9a7b34 100%);
+  color: #0a0a0a !important;
+  border-color: #e6c878;
+  box-shadow: 0 8px 22px rgba(200, 164, 92, 0.28);
+  transform: translateY(-2px);
+}
+.gaming-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
 /* Accents used as backgrounds need light text once the palette darkens. */
 html[data-theme="light"] ::selection {
   background: #6b4e18;
