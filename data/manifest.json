@@ -1,0 +1,72 @@
+{
+  "generated": "2026-06-09T17:54:13.319Z",
+  "posts": [
+    {
+      "slug": "2026-04-30-posting-from-anywhere",
+      "title": "Posting From Anywhere",
+      "date": "2026-04-30",
+      "file": "/md/2026-04-30-posting-from-anywhere.md",
+      "url": "/posts/post.html?slug=2026-04-30-posting-from-anywhere",
+      "summary": "hehe No more Hugo. No more needing the original machine. Worked with Claude so I can post from anywhere and did some clean-up"
+    },
+    {
+      "slug": "unsure",
+      "title": "unsure",
+      "date": "2026-04-30",
+      "file": "/md/unsure.md",
+      "url": "/posts/post.html?slug=unsure",
+      "summary": "unsure what to post here quite yet and debating on how to engage or keep substack! but wanted to do a further test post here and maybe one in the development section."
+    },
+    {
+      "title": "Dbl Check - Relaunch",
+      "date": "2025-06-02",
+      "url": "/posts/dblcheckrelaunch/"
+    },
+    {
+      "title": "Currently working a lot with my buddy Claude",
+      "date": "2025-03-19",
+      "url": "/posts/let-us-cook/"
+    },
+    {
+      "title": "Welcome To Somnolent Labs",
+      "date": "2025-03-08",
+      "url": "/posts/first-post/"
+    }
+  ],
+  "development": [
+    {
+      "slug": "dbl-check",
+      "title": "Dbl Check",
+      "date": "2026-04-30",
+      "file": "/development/md/dbl-check.md",
+      "url": "/development/",
+      "summary": "Chrome extension that helps family critically think about whether a site or post is credible. [Get it on the Chrome Web Store](https://chromewebstore.google.com/detail/dbl-check/labkdeadaiekmeajaiknljnjpockolfj)"
+    },
+    {
+      "slug": "striking",
+      "title": "striking",
+      "date": "2026-04-30",
+      "file": "/development/md/striking.md",
+      "url": "/development/",
+      "summary": "I'll update this post, but I enjoyed making a kickboxing/striking anaylsis tool with Claude Code as a weekend project."
+    }
+  ],
+  "research": [
+    {
+      "slug": "coming-soon",
+      "title": "Coming Soon",
+      "date": "2026-04-30",
+      "file": "/research/md/coming-soon.md",
+      "url": "/research/",
+      "summary": "Research initiatives launching soon. Stay tuned."
+    },
+    {
+      "slug": "masterscomplete",
+      "title": "finished my masters",
+      "date": "2026-04-30",
+      "file": "/research/md/masterscomplete.md",
+      "url": "/research/",
+      "summary": "I finished my masters! Just waiting on confirmation (grade uploads) and the diploma itself."
+    }
+  ]
+}
